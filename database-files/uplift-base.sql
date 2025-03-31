@@ -2,16 +2,13 @@ DROP DATABASE IF EXISTS uplift;
 CREATE DATABASE IF NOT EXISTS uplift;
 USE uplift;
 
-DROP TABLE IF EXISTS user_feedback_answers;
-DROP TABLE IF EXISTS user_feedback_forms;
+DROP TABLE IF EXISTS feedback_forms;
 DROP TABLE IF EXISTS organization_locations;
 DROP TABLE IF EXISTS program_locations;
 DROP TABLE IF EXISTS program_categories;
 DROP TABLE IF EXISTS organization_categories;
 DROP TABLE IF EXISTS user_programs;
 DROP TABLE IF EXISTS locations;
-DROP TABLE IF EXISTS feedback_questions;
-DROP TABLE IF EXISTS feedback_forms;
 DROP TABLE IF EXISTS point_of_contacts;
 DROP TABLE IF EXISTS applications;
 DROP TABLE IF EXISTS qualifications;
@@ -52,11 +49,11 @@ CREATE TABLE organizations (
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     website_url VARCHAR(255),
-    verified BOOLEAN DEFAULT FALSE,
+    is_verified BOOLEAN DEFAULT FALSE,
     verified_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_organization_verified (verified)
+    INDEX idx_organization_verified (is_verified)
 );
 
 CREATE TABLE categories (
@@ -134,30 +131,25 @@ CREATE TABLE point_of_contacts (
 
 CREATE TABLE feedback_forms (
     id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
-    organization_id CHAR(36) NOT NULL,
+    program_id CHAR(36) NOT NULL,
+    user_id CHAR(36) NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description TEXT,
-    active BOOLEAN DEFAULT TRUE,
-    expiration_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    INDEX idx_feedback_organization (organization_id),
-    INDEX idx_feedback_active (active)
-);
-
-CREATE TABLE feedback_questions (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
-    feedback_form_id CHAR(36) NOT NULL,
-    question VARCHAR(255) NOT NULL,
-    question_type TEXT,
-    options TEXT,
-    question_order INT DEFAULT 0,
-    rating_scale INT DEFAULT 5,
-    required BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (feedback_form_id) REFERENCES feedback_forms(id) ON DELETE CASCADE,
-    INDEX idx_question_form (feedback_form_id),
-    UNIQUE KEY unq_question_order (feedback_form_id, question_order)
+    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_feedback_program (program_id),
+    INDEX idx_feedback_user (user_id),
+    effectiveness INT NOT NULL,
+    experience INT NOT NULL,
+    simplicity INT NOT NULL,
+    recommendation INT NOT NULL,
+    improvement text NOT NULL,
+    CHECK (effectiveness >= 0 AND effectiveness <= 5),
+    CHECK (experience >= 0 AND experience <= 5),
+    CHECK (simplicity >= 0 AND simplicity <= 5),
+    CHECK (recommendation >= 0 AND recommendation <= 5),
+    UNIQUE KEY unq_user_feedback_program (user_id, program_id)
 );
 
 CREATE TABLE locations (
@@ -223,32 +215,4 @@ CREATE TABLE organization_locations (
     FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE,
     INDEX idx_organization_location (organization_id, location_id)
-);
-
-CREATE TABLE user_feedback_forms (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
-    user_id CHAR(36) NOT NULL,
-    feedback_form_id CHAR(36) NOT NULL,
-    status ENUM('in_progress', 'submitted') NOT NULL DEFAULT 'in_progress',
-    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (feedback_form_id) REFERENCES feedback_forms(id) ON DELETE CASCADE,
-    INDEX idx_feedback_user (user_id),
-    INDEX idx_feedback_form (feedback_form_id)
-);
-
-CREATE TABLE user_feedback_answers (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
-    user_feedback_form_id CHAR(36) NOT NULL,
-    question_id CHAR(36) NOT NULL,
-    answer TEXT,
-    rating INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_feedback_form_id) REFERENCES user_feedback_forms(id) ON DELETE CASCADE,
-    FOREIGN KEY (question_id) REFERENCES feedback_questions(id) ON DELETE CASCADE,
-    INDEX idx_feedback_form (user_feedback_form_id),
-    INDEX idx_question_id (question_id)
 );
