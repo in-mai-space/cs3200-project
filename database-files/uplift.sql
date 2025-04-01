@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS user_profiles;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     type ENUM('admin', 'user', 'data_analyst', 'organization_admin') NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE user_profiles (
     employment_status VARCHAR(50),
     veteran_status BOOLEAN DEFAULT FALSE,
     disability_status BOOLEAN DEFAULT FALSE,
-    ssn VARCHAR(11),
+    ssn VARCHAR(11) NOT NULL,
     verification_status ENUM('unverified', 'pending', 'verified') DEFAULT 'unverified',
     verification_date TIMESTAMP,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -45,7 +45,7 @@ CREATE TABLE user_profiles (
 );
 
 CREATE TABLE organizations (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     website_url VARCHAR(255),
@@ -57,13 +57,13 @@ CREATE TABLE organizations (
 );
 
 CREATE TABLE categories (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     name VARCHAR(50) NOT NULL UNIQUE,
     INDEX idx_category_name (name)
 );
 
 CREATE TABLE programs (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     status ENUM('open', 'close') NOT NULL DEFAULT 'open',
@@ -97,7 +97,7 @@ CREATE TABLE qualifications (
 );
 
 CREATE TABLE applications (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     user_id CHAR(36) NOT NULL,
     program_id CHAR(36) NOT NULL,
     status ENUM('draft', 'submitted', 'under_review', 'additional_info_needed', 'approved', 'rejected', 'waitlisted', 'withdrawn') NOT NULL DEFAULT 'draft',
@@ -117,7 +117,7 @@ CREATE TABLE applications (
 );
 
 CREATE TABLE point_of_contacts (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     contact_type ENUM('user', 'organization') NOT NULL,
     entity_id CHAR(36) NOT NULL,
     description VARCHAR(100),
@@ -130,7 +130,7 @@ CREATE TABLE point_of_contacts (
 );
 
 CREATE TABLE feedback_forms (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     program_id CHAR(36) NOT NULL,
     user_id CHAR(36) NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE feedback_forms (
 );
 
 CREATE TABLE locations (
-    id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()) NOT NULL,
     location_type ENUM('user', 'program', 'organization') NOT NULL,
     entity_id CHAR(36) NOT NULL,
     type ENUM('virtual', 'physical') NOT NULL,
@@ -162,7 +162,7 @@ CREATE TABLE locations (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(100) NOT NULL,
     zip_code VARCHAR(10) NOT NULL,
-    country VARCHAR(100) DEFAULT 'United States',
+    country VARCHAR(100) DEFAULT 'United States' NOT NULL,
     is_primary BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -227,11 +227,11 @@ INSERT INTO users VALUES
 ('55555555-5555-5555-5555-555555555555', 'Michael', 'Brown', 'user', '2024-01-05 14:00:00');
 
 INSERT INTO user_profiles VALUES
-('11111111-1111-1111-1111-111111111111', '1980-06-15', 'Male', 75000, 'Masters', 'Employed', FALSE, FALSE, NULL, 'verified', '2024-01-10 10:30:00', '2024-01-10 10:30:00'),
-('22222222-2222-2222-2222-222222222222', '1992-03-20', 'Female', 45000, 'Bachelors', 'Employed', FALSE, FALSE, NULL, 'verified', '2024-01-12 11:15:00', '2024-01-12 11:15:00'),
-('33333333-3333-3333-3333-333333333333', '1985-11-08', 'Male', 85000, 'PhD', 'Employed', TRUE, FALSE, NULL, 'verified', '2024-01-14 09:45:00', '2024-01-14 09:45:00'),
-('44444444-4444-4444-4444-444444444444', '1990-09-25', 'Female', 65000, 'Masters', 'Employed', FALSE, FALSE, NULL, 'verified', '2024-01-15 13:20:00', '2024-01-15 13:20:00'),
-('55555555-5555-5555-5555-555555555555', '1995-04-12', 'Male', 35000, 'High School', 'Part-time', FALSE, TRUE, NULL, 'pending', NULL, '2024-01-16 15:10:00');
+('11111111-1111-1111-1111-111111111111', '1980-06-15', 'Male', 75000, 'Masters', 'Employed', FALSE, FALSE, 12345, 'verified', '2024-01-10 10:30:00', '2024-01-10 10:30:00'),
+('22222222-2222-2222-2222-222222222222', '1992-03-20', 'Female', 45000, 'Bachelors', 'Employed', FALSE, FALSE, 23456, 'verified', '2024-01-12 11:15:00', '2024-01-12 11:15:00'),
+('33333333-3333-3333-3333-333333333333', '1985-11-08', 'Male', 85000, 'PhD', 'Employed', TRUE, FALSE, 34567, 'verified', '2024-01-14 09:45:00', '2024-01-14 09:45:00'),
+('44444444-4444-4444-4444-444444444444', '1990-09-25', 'Female', 65000, 'Masters', 'Employed', FALSE, FALSE, 45678, 'verified', '2024-01-15 13:20:00', '2024-01-15 13:20:00'),
+('55555555-5555-5555-5555-555555555555', '1995-04-12', 'Male', 35000, 'High School', 'Part-time', FALSE, TRUE, 56789, 'pending', NULL, '2024-01-16 15:10:00');
 
 INSERT INTO organizations VALUES
 ('AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA', 'Community Support Foundation', 'Non-profit focused on community welfare programs', 'https://csf.org', TRUE, '2024-01-05 10:30:00', '2024-01-01 09:00:00', '2024-01-01 09:00:00'),
@@ -318,5 +318,4 @@ INSERT INTO program_locations VALUES
 INSERT INTO organization_locations VALUES
 ('AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA', '777777GG-GGGG-GGGG-GGGG-777777GGGGGG'),
 ('BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB', '888888HH-HHHH-HHHH-HHHH-888888HHHHHH');
-
 
