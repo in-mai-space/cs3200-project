@@ -319,3 +319,238 @@ INSERT INTO organization_locations VALUES
 ('AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA', '777777GG-GGGG-GGGG-GGGG-777777GGGGGG'),
 ('BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB', '888888HH-HHHH-HHHH-HHHH-888888HHHHHH');
 
+
+-- USER STORY SQL STATEMENTS START HERE ===================================================================================================================================
+
+-- 1.1------------------------------------
+DELETE FROM users
+WHERE id = 'THE-USER-ID-TO-BAN';
+
+-- 1.2------------------------------------
+SELECT *
+FROM feedback_forms
+WHERE title LIKE 'SOME-BANNED-KEYWORD';
+DELETE FROM feedback_forms
+WHERE id = 'ID-OF-INAPPROPRIATE-FEEDBACK-FORM';
+
+-- 1.3------------------------------------
+INSERT INTO programs (
+	name,
+	description, 
+	website_url
+)
+VALUES (
+	'NEW-NAME-TO-BE-CHANGED',
+	'NEW-DESCRIPTION-TO-BE-CHANGED',
+	'HTTPS://NEW-WEBSITE-URL-TO-BE-CHANGED.COM'
+);
+
+-- 1.4------------------------------------
+UPDATE organizations
+SET name = 'NEW-ORGANIZATION-NAME'
+WHERE id = 'ORGANIZATION-ID-TO-RENAME';
+
+-- 1.5------------------------------------
+INSERT INTO users (
+	first_name,
+	last_name,
+)
+VALUES (
+	'CORRECT-FIRST-NAME-TO-BE-CHANGED',
+	'CORRECT-LAST-NAME-TO-BE-CHANGED'
+);
+
+-- 1.6------------------------------------
+SELECT
+	AVG(effectiveness)	AS avg_effectiveness_metric,
+	AVG(experience)	AS avg_experience_metric,
+	AVG(recommendation)	AS avg_recommendation_metric
+FROM feedback_from;
+
+-- 2.1------------------------------------
+SELECT p.*
+FROM programs p
+INNER JOIN program_categories pc ON p.id = pc.program_id
+INNER JOIN categories c ON pc.category_id = c.id
+WHERE c.name LIKE '%SOME-KEYWORD-HERE%';
+
+-- 2.2------------------------------------
+SELECT DISTINCT p.*
+FROM programs p
+INNER JOIN program_locations pl ON p.id = pl.program_id
+INNER JOIN locations l ON pl.location_id = l.id
+WHERE l.state = 'STATE-NAME-HERE'
+  AND l.city = 'CITY-NAME-HERE';
+
+-- 2.3------------------------------------
+INSERT INTO applications (
+    id,
+    user_id,
+    program_id,
+    status,
+    qualification_status
+)
+VALUES (
+    UUID(),
+    'USER-ID-HERE',
+    'PROGRAM-ID-HERE',
+    'submitted',
+    'pending'
+);
+
+-- 2.4------------------------------------
+INSERT INTO feedback_forms (
+    id,
+    program_id,
+    user_id,
+    title,
+    effectiveness,
+    experience,
+    simplicity,
+    recommendation,
+    improvement
+)
+VALUES (
+    UUID(),
+    'PROGRAM-ID-HERE',
+    'USER-ID-HERE',
+    'Feedback Title Here',
+    4,  -- effectiveness (0–5)
+    4,  -- experience (0–5)
+    3,  -- simplicity (0–5)
+    4,  -- recommendation (0–5)
+    'ENTER-FEEDBACK-TEXT-HERE'
+);
+
+-- 2.5------------------------------------
+SELECT DISTINCT p.*
+FROM programs p
+INNER JOIN qualifications q ON p.id = q.program_id
+INNER JOIN user_profiles up ON up.user_id = 'USER-ID-HERE'
+WHERE (
+    (q.qualification_type = 'income' AND up.income <= q.max_value)
+    OR q.qualification_type != 'income'
+);
+
+-- 2.6------------------------------------
+UPDATE user_profiles
+SET 
+    income = SOME-INCOME-VALUE-HERE,
+    education_level = 'EDUCATION-LEVEL-HERE',
+    employment_status = 'EMPLOYMENT-STATUS-HERE',
+    verification_status = 'verified',
+    last_updated = CURRENT_TIMESTAMP
+WHERE user_id = 'USER-ID-HERE';
+
+-- 3.1------------------------------------
+INSERT INTO organizations VALUES
+('EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE', 'Healthcare Access',
+'Expanding healthcare access to underserved populations', 'https://hap.org',
+FALSE, NULL, '2024-01-05 13:00:00', '2024-01-05 13:00:00');
+
+-- 3.2------------------------------------
+UPDATE organizations
+SET description = 'Healthcare Access is a nonprofit organization dedicated to expanding equitable healthcare for underserved communities. By providing comprehensive medical services, promoting health education, and advocating for policy change, we work to eliminate barriers to quality care.',
+   website_url = 'https://healthcareaccess.org'
+WHERE id = 'EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE';
+
+
+INSERT INTO programs VALUES
+('DDDDDD44-4444-4444-4444-DDDDDD444444', 'Health Checkup Camps',
+'Provide free or low-cost blood pressure, glucose, and cholesterol screenings.',
+'close', '2023-07-01', '2023-12-31 23:59:59', '2024-01-31',
+'EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE', 'IIIIIIII-IIII-IIII-IIII-IIIIIIIIIIII',
+'2024-07-20 13:00:00', '2024-07-21 09:00:00');
+
+-- 3.3------------------------------------
+INSERT INTO feedback_forms VALUES
+('GGGGGG77-7777-7777-7777-GGGGGG777777', 'DDDDDD44-4444-4444-4444-DDDDDD444444',
+'55555555-5555-5555-5555-555555555555', 'Program Feedback Form', '2024-07-25 10:25:00',
+'2024-07-25 10:25:00', 4, 4, 5, 5,
+'It was a really great program, no notes.' );
+
+
+SELECT * FROM feedback_forms WHERE program_id = 'DDDDDD44-4444-4444-4444-DDDDDD444444';
+
+-- 3.4------------------------------------
+INSERT INTO programs VALUES
+('OOOOOOOO-OOOO-OOOO-OOOO-OOOOOOOOOOOO', 'Healthcare Subsidy',
+'Subsidies for medical care for low-income individuals', 'open',
+'2024-01-20', '2024-12-31 23:59:59', '2025-12-31',
+'EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE', 'IIIIIIII-IIII-IIII-IIII-IIIIIIIIIIII',
+'2024-01-13 12:00:00', '2024-01-13 12:00:00');
+
+-- 3.5------------------------------------
+SELECT * FROM point_of_contacts
+WHERE contact_type = 'organization';
+
+-- 3.6------------------------------------
+INSERT INTO point_of_contacts VALUES
+('AZBDZARC-SVZZ-ZZDZ-Z159-XXHZLPKZPZZO', 'organization',
+'ee8c8555-45d6-4a2a-8a00-1d4c851358f3', 'Program Coordinator',
+'caseycat@healthcareaccess.org', '894-309-2748', '2025-01-14 18:03:42',
+'2025-01-14 18:10:12');
+
+-- 4.1------------------------------------
+SELECT program_id, 
+     AVG(effectiveness)  AS avg_effectiveness, 
+     AVG(simplicity) AS avg_simplicity, 
+     AVG(recommendation) AS avg_recommendation, 
+     AVG(experience) AS avg_experience FROM feedback_forms 
+GROUP BY program_id;
+
+-- 4.2------------------------------------
+SELECT * FROM user_profiles 
+INNER JOIN applications a on user_profiles.user_id = a.user_id 
+WHERE a.program_id = 'WHATEVER-PROGRAM-ID-IS'; 
+
+-- 4.3------------------------------------
+SELECT program_id, COUNT(*) FROM applications GROUP BY program_id;
+
+-- 4.4------------------------------------
+SELECT 
+    CASE WHEN app_count.application_count > 1 
+       THEN 'Returned users' 
+       ELSE 'One-time users' END AS user_type, 
+    AVG(f.effectiveness) AS avg_effectiveness_rating, 
+    AVG(f.experience) AS avg_experience_rating, 
+    AVG(f.simplicity) AS avg_simplicity_rating, 
+    AVG(f.recommendation) AS avg_recommendation_rating, 
+    COUNT(DISTINCT f.user_id) AS user_count 
+FROM feedback_forms f 
+INNER JOIN ( 
+SELECT user_id, COUNT(id) AS application_count 
+FROM applications 
+GROUP BY user_id ) app_count 
+ON f.user_id = app_count.user_id 
+GROUP BY user_type;
+
+-- 4.5------------------------------------
+SELECT p.id AS program_id, p.name AS program_name, 
+    c.name AS category_name, 
+    DATE_FORMAT(a.applied_at, '%Y-%m') AS application_month, 
+    COUNT(a.id) AS application_count, 
+    SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) AS approved_count, 
+    SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) AS rejected_count 
+FROM programs p 
+INNER JOIN applications a ON p.id = a.program_id 
+INNER JOIN program_categories pc ON p.id = pc.program_id 
+INNER JOIN categories c ON pc.category_id = c.id 
+WHERE a.applied_at >= DATE_SUB(CURRENT_DATE(), INTERVAL 24 MONTH) 
+GROUP BY p.id, p.name, c.name, DATE_FORMAT(a.applied_at, '%Y-%m') 
+ORDER BY p.name, application_month;
+
+-- 4.6------------------------------------
+SELECT l.state, l.city, 
+    c.name AS category_name, 
+    COUNT(DISTINCT p.id) AS program_count, 
+    COUNT(DISTINCT a.id) AS application_count 
+FROM programs p 
+INNER JOIN program_categories pc ON p.id = pc.program_id 
+INNER JOIN categories c ON pc.category_id = c.id 
+INNER JOIN program_locations pl ON p.id = pl.program_id 
+INNER JOIN locations l ON pl.location_id = l.id 
+LEFT JOIN applications a ON p.id = a.program_id 
+WHERE p.status = 'open' AND l.type = 'physical' 
+GROUP BY l.state, l.city, c.name 
+ORDER BY l.state, l.city, application_count DESC, program_count DESC;
