@@ -34,17 +34,15 @@ def create_app():
     app.logger.info('current_app(): starting the database connection')
     db.init_app(app)
 
-    # Add health check endpoint
-    @app.route('/health')
+    # Healthcheck endpoint
+    @app.route('/healthcheck')
     def health_check():
         return jsonify({"status": "healthy"}), 200
 
     # Register the routes from each Blueprint with the app object
-    # and give a url prefix to each
     app.logger.info('current_app(): registering blueprints with Flask app object.')   
     app.register_blueprint(customers,   url_prefix='/c')
     app.register_blueprint(products,    url_prefix='/p')
 
-    # Don't forget to return the app object
     return app
 
