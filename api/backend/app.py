@@ -1,50 +1,37 @@
 from flask import Flask, jsonify
 
 from backend.database import db
-from backend.customers.customer_routes import customers
-from backend.products.products_routes import products
-import os
-from dotenv import load_dotenv
+from backend.config import load_config
+from backend.users.users_routes import users
+from backend.organizations.organizations_routes import organizations
+from backend.programs.programs_routes import programs
+from backend.feedbacks.feedback_routes import feedbacks
+from backend.applications.applications_routes import applications
 
 def create_app():
     app = Flask(__name__)
 
-    # Load environment variables
-    # This function reads all the values from inside
-    # the .env file (in the parent folder) so they
-    # are available in this file.  See the MySQL setup 
-    # commands below to see how they're being used.
-    load_dotenv()
-
-    # secret key that will be used for securely signing the session 
-    # cookie and can be used for any other security related needs by 
-    # extensions or your application
-    # app.config['SECRET_KEY'] = 'someCrazyS3cR3T!Key.!'
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
-    # # these are for the DB object to be able to connect to MySQL. 
-    # app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_USER'] = os.getenv('DB_USER').strip()
-    app.config['MYSQL_DATABASE_PASSWORD'] = os.getenv('MYSQL_ROOT_PASSWORD').strip()
-    app.config['MYSQL_DATABASE_HOST'] = os.getenv('DB_HOST').strip()
-    app.config['MYSQL_DATABASE_PORT'] = int(os.getenv('DB_PORT').strip())
-    app.config['MYSQL_DATABASE_DB'] = os.getenv('DB_NAME').strip()  # Change this to your DB name
+    # Load configuration
+    config = load_config()
+    
+    # Set configuration values
+    app.config.update(config)
 
     # Initialize the database object with the settings above. 
     app.logger.info('current_app(): starting the database connection')
     db.init_app(app)
 
-    # Add health check endpoint
-    @app.route('/health')
+    # Add healthcheck endpoint
+    @app.route('/healthcheck')
     def health_check():
         return jsonify({"status": "healthy"}), 200
+    
+    # Register routes for API endpoints
+    app.logger.info('current_app(): registering blueprints with Flask app object.') 
+    app.register_blueprint(users, url_prefix='/users')
+    app.register_blueprint(organizations, url_prefix='/organizations')
+    app.register_blueprint(programs, url_prefix='/programs')
+    app.register_blueprint(applications, url_prefix='/applications')
+    app.register_blueprint(feedbacks, url_prefix='/feedbacks')
 
-    # Register the routes from each Blueprint with the app object
-    # and give a url prefix to each
-    app.logger.info('current_app(): registering blueprints with Flask app object.')   
-    app.register_blueprint(customers,   url_prefix='/c')
-    app.register_blueprint(products,    url_prefix='/p')
-
-    # Don't forget to return the app object
     return app
-
