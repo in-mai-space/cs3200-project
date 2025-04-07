@@ -1,0 +1,41 @@
+version: '3'
+tasks:
+  all:up:
+    desc: "Run all containers"
+    cmds:
+      - docker compose up -d
+  
+  test:up:
+    desc: "Run test containers"
+    cmds:
+      - docker compose -f docker-compose-testing.yaml up -d
+  
+  all:down:
+    desc: "Stop all containers"
+    cmds:
+      - docker compose down
+  
+  test:down:
+    desc: "Stop test containers"
+    cmds:
+      - docker compose -f docker-compose-testing.yaml down
+  
+  all:stop:
+    desc: "Stop all containers"
+    cmds:
+      - docker compose stop
+  
+  test:stop:
+    desc: "Stop test containers"
+    cmds:
+      - docker compose -f docker-compose-testing.yaml stop
+  
+  all:db:
+    desc: "Run db container"
+    cmds:
+      - docker compose up db -d
+  
+  test:db:
+    desc: "Run db test container"
+    cmds:
+      - docker compose -f docker-compose-testing.yaml up db -d
