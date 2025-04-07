@@ -12,13 +12,13 @@ from backend.database import db
 #------------------------------------------------------------
 # Create a new Blueprint object, which is a collection of 
 # routes.
-customers = Blueprint('customers', __name__)
+feedbacks = Blueprint('feedbacks', __name__)
 
 
 #------------------------------------------------------------
 # Get all customers from the system
-@customers.route('/customers', methods=['GET'])
-def get_customers():
+@feedbacks.route('/feedbacks', methods=['GET'])
+def get_feedbacks():
 
     cursor = db.get_db().cursor()
     cursor.execute('''SELECT id, company, last_name,
@@ -34,30 +34,30 @@ def get_customers():
 #------------------------------------------------------------
 # Update customer info for customer with particular userID
 #   Notice the manner of constructing the query.
-@customers.route('/customers', methods=['PUT'])
-def update_customer():
-    current_app.logger.info('PUT /customers route')
-    cust_info = request.json
-    cust_id = cust_info['id']
-    first = cust_info['first_name']
-    last = cust_info['last_name']
-    company = cust_info['company']
+@feedbacks.route('/feedbacks', methods=['PUT'])
+def update_feedback():
+    current_app.logger.info('PUT /feedbacks route')
+    feedback_info = request.json
+    feedback_id = feedback_info['id']
+    name = feedback_info['name']
+    description = feedback_info['description']
+    category = feedback_info['category']
 
-    query = 'UPDATE customers SET first_name = %s, last_name = %s, company = %s where id = %s'
-    data = (first, last, company, cust_id)
+    query = 'UPDATE feedbacks SET name = %s, description = %s, category = %s where id = %s'
+    data = (name, description, category, feedback_id)
     cursor = db.get_db().cursor()
     r = cursor.execute(query, data)
     db.get_db().commit()
-    return 'customer updated!'
+    return 'feedback updated!'
 
 #------------------------------------------------------------
 # Get customer detail for customer with particular userID
 #   Notice the manner of constructing the query. 
-@customers.route('/customers/<userID>', methods=['GET'])
-def get_customer(userID):
-    current_app.logger.info('GET /customers/<userID> route')
+@feedbacks.route('/feedbacks/<feedbackID>', methods=['GET'])
+def get_feedback(feedbackID):
+    current_app.logger.info('GET /feedbacks/<feedbackID> route')
     cursor = db.get_db().cursor()
-    cursor.execute('SELECT id, first_name, last_name FROM customers WHERE id = {0}'.format(userID))
+    cursor.execute('SELECT id, name, description, category FROM feedbacks WHERE id = {0}'.format(feedbackID))
     
     theData = cursor.fetchall()
     
@@ -68,7 +68,7 @@ def get_customer(userID):
 #------------------------------------------------------------
 # Makes use of the very simple ML model in to predict a value
 # and returns it to the user
-@customers.route('/prediction/<var01>/<var02>', methods=['GET'])
+@feedbacks.route('/prediction/<var01>/<var02>', methods=['GET'])
 def predict_value(var01, var02):
     current_app.logger.info(f'var01 = {var01}')
     current_app.logger.info(f'var02 = {var02}')
