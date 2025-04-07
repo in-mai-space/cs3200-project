@@ -1,9 +1,8 @@
-from flask import Flask
+from flask import Flask, jsonify
 
-from backend.db_connection import db
+from backend.database import db
 from backend.customers.customer_routes import customers
 from backend.products.products_routes import products
-from backend.simple.simple_routes import simple_routes
 import os
 from dotenv import load_dotenv
 
@@ -35,11 +34,14 @@ def create_app():
     app.logger.info('current_app(): starting the database connection')
     db.init_app(app)
 
+    # Add health check endpoint
+    @app.route('/health')
+    def health_check():
+        return jsonify({"status": "healthy"}), 200
 
     # Register the routes from each Blueprint with the app object
     # and give a url prefix to each
     app.logger.info('current_app(): registering blueprints with Flask app object.')   
-    app.register_blueprint(simple_routes)
     app.register_blueprint(customers,   url_prefix='/c')
     app.register_blueprint(products,    url_prefix='/p')
 
