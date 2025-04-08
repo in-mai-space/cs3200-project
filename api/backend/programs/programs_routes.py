@@ -12,49 +12,8 @@ from backend.database import db
 # routes.
 programs = Blueprint('programs', __name__)
 
-
 #------------------------------------------------------------
-# Get all customers from the system
-@programs.route('/', methods=['GET'])
-def get_programs():
-    cursor = db.get_db().cursor()
-    cursor.execute('SELECT * FROM Programs')
-    row_headers = [x[0] for x in cursor.description]
-    results = cursor.fetchall()
-    json_data = []
-    for result in results:
-        json_data.append(dict(zip(row_headers, result)))
-    return jsonify(json_data)
-
-#------------------------------------------------------------
-# Get customer detail for customer with particular userID
-#   Notice the manner of constructing the query. 
-@programs.route('/<int:program_id>', methods=['GET'])
-def get_program(program_id):
-    cursor = db.get_db().cursor()
-    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
-    row_headers = [x[0] for x in cursor.description]
-    result = cursor.fetchone()
-    if result:
-        return jsonify(dict(zip(row_headers, result)))
-    return jsonify({"error": "Program not found"}), 404
-
-#------------------------------------------------------------
-# Makes use of the very simple ML model in to predict a value
-# and returns it to the user
-@programs.route('/prediction/<var01>/<var02>', methods=['GET'])
-def predict_value(var01, var02):
-    current_app.logger.info(f'var01 = {var01}')
-    current_app.logger.info(f'var02 = {var02}')
-
-    returnVal = predict(var01, var02)
-    return_dict = {'result': returnVal}
-
-    the_response = make_response(jsonify(return_dict))
-    the_response.status_code = 200
-    the_response.mimetype = 'application/json'
-    return the_response
-
+# Create a program
 @programs.route('/', methods=['POST'])
 def create_program():
     data = request.json
@@ -69,6 +28,105 @@ def create_program():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+#------------------------------------------------------------
+# Search for all programs 
+@programs.route('/', methods=['GET'])
+def get_programs():
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs')
+    row_headers = [x[0] for x in cursor.description]
+    results = cursor.fetchall()
+    json_data = []
+    for result in results:
+        json_data.append(dict(zip(row_headers, result)))
+    return jsonify(json_data)
+
+#------------------------------------------------------------
+# Get a specific program
+@programs.route('/<string:program_id>', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Get all applications for a specific program
+@programs.route('/<string:program_id>/applications', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Get all user profiles of people who apply for a specific program
+@programs.route('/<string:program_id>/profiles', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Get all feedback forms for a program
+@programs.route('/<string:program_id>/feedbacks', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Get all feedback forms for a program
+@programs.route('/programs/ratings', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Get all feedback forms for a program
+@programs.route('/programs/:id/retentions', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Get all feedback forms for a program
+@programs.route('/programs/:id/ratings', methods=['GET'])
+def get_program(program_id):
+    cursor = db.get_db().cursor()
+    cursor.execute('SELECT * FROM Programs WHERE program_id = %s', (program_id,))
+    row_headers = [x[0] for x in cursor.description]
+    result = cursor.fetchone()
+    if result:
+        return jsonify(dict(zip(row_headers, result)))
+    return jsonify({"error": "Program not found"}), 404
+
+#------------------------------------------------------------
+# Update a specific program
 @programs.route('/<int:program_id>', methods=['PUT'])
 def update_program(program_id):
     data = request.json
@@ -90,6 +148,8 @@ def update_program(program_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+#------------------------------------------------------------
+# Delete a specific program
 @programs.route('/<int:program_id>', methods=['DELETE'])
 def delete_program(program_id):
     cursor = db.get_db().cursor()
@@ -99,14 +159,3 @@ def delete_program(program_id):
         return jsonify({"message": "Program deleted successfully"})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
-@programs.route('/organization/<int:org_id>', methods=['GET'])
-def get_programs_by_organization(org_id):
-    cursor = db.get_db().cursor()
-    cursor.execute('SELECT * FROM Programs WHERE org_id = %s', (org_id,))
-    row_headers = [x[0] for x in cursor.description]
-    results = cursor.fetchall()
-    json_data = []
-    for result in results:
-        json_data.append(dict(zip(row_headers, result)))
-    return jsonify(json_data)
