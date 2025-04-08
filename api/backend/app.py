@@ -6,6 +6,7 @@ from backend.users.users_routes import users
 from backend.organizations.organizations_routes import organizations
 from backend.programs.programs_routes import programs
 from backend.feedbacks.feedback_routes import feedbacks
+from backend.categories.categories_routes import categories
 from backend.applications.applications_routes import applications
 
 def create_app():
@@ -33,5 +34,6 @@ def create_app():
     app.register_blueprint(programs, url_prefix='/programs')
     app.register_blueprint(applications, url_prefix='/applications')
     app.register_blueprint(feedbacks, url_prefix='/feedbacks')
+    app.register_blueprint(categories, url_prefix='/categories')
 
     return app
