@@ -3,8 +3,8 @@ from flask import Flask, jsonify, Blueprint
 from backend.database import db
 from backend.config import load_config
 from backend.users.users_routes import users
-from backend.organizations.organizations_routes import organizations
-from backend.programs.programs_routes import programs
+from backend.organizations.controllers import organizations
+from backend.programs.controllers import programs
 from backend.feedbacks.feedback_routes import feedbacks
 from backend.categories.controllers import categories
 from backend.applications.applications_routes import applications

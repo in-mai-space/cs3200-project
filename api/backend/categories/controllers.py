@@ -1,7 +1,7 @@
 from typing import Dict, Any, Tuple
 from flask import Blueprint, request, jsonify, Response
 from marshmallow import ValidationError
-from backend.categories.validators import CategorySchema, CategoryUpdateSchema
+from backend.validators.categories import CategorySchema, CategoryUpdateSchema
 from backend.categories.transactions import (
     create_category,
     get_all_categories,
