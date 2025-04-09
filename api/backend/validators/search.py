@@ -1,3 +1,4 @@
+from api.backend.utilities.uuid import validate_uuid
 from flask import request
 from api.backend.validators.search import SearchQueryParamSchema  # update path if needed
 from api.backend.utilities.pagination import validate_pagination
@@ -9,10 +10,13 @@ def validate_search_params():
     Returns a tuple of (page, limit, validated_search_params)
     """
     page, limit = validate_pagination()
+    user_id = request.args.get('user_id')
+    validate_uuid(user_id)
 
     query_params = {
         'search_query': request.args.get('search_query'),
         'categories': request.args.getlist('categories') or None,
+        'user_id': user_id or None,
         'location': {
             'city': request.args.get('city'),
             'state': request.args.get('state'),
@@ -22,6 +26,8 @@ def validate_search_params():
         'is_qualified': request.args.get('is_qualified'),
         'sort_by': request.args.get('sort_by', 'name'),
         'sort_order': request.args.get('sort_order', 'asc'),
+        'page': page,
+        'limit': limit
     }
 
     # clean up location
@@ -40,4 +46,4 @@ def validate_search_params():
     except ValidationError as err:
         raise ValueError(f"Invalid query parameters: {err.messages}")
 
-    return page, limit, validated_params
+    return validated_params
