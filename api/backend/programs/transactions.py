@@ -3,82 +3,26 @@ from backend.database import db
 from backend.utilities.errors import DatabaseError, ConflictError, NotFoundError
 from mysql.connector import Error as MySQLError
 
-def create_category(data: Dict[str, str]) -> Dict[str, Any]:
+def get_program_by_id(program_id: str) -> Dict[str, Any]:
     """
-    Create a new category in the database.
+    Retrieve a specific program by its ID.
 
     Args:
-        data (Dict[str, str]): Dictionary containing the category data.
-            Must contain a 'name' key with the category name.
+        program_id (str): The UUID of the category to retrieve.
 
     Returns:
-        Dict[str, Any]: The created category with its ID and name.
+        Dict[str, Any]: The program information.
 
     Raises:
-        ConflictError: If a category with the same name already exists.
-        DatabaseError: If there's an error creating the category.
-    """
-    cursor = db.get_db().cursor()
-    try: 
-        cursor.execute('INSERT INTO categories (name) VALUES (%s)', (data['name'],))
-        db.get_db().commit()
-        cursor.execute('SELECT * FROM categories WHERE name = %s', (data['name'],))
-        result = cursor.fetchone()
-        if not result:
-            raise DatabaseError("Failed to create category")
-        return result
-    except MySQLError as e:
-        if e.args[0] == 1062:
-            raise ConflictError(f"Category with name {data['name']} already exists")
-        else:
-            raise DatabaseError(str(e))
-    finally:
-        cursor.close()
-
-def get_all_categories(page: int, limit: int) -> List[Dict[str, Any]]:
-    """
-    Retrieve all categories with pagination.
-
-    Args:
-        page (int): The page number (1-based).
-        limit (int): The number of categories per page.
-
-    Returns:
-        List[Dict[str, Any]]: List of categories, each containing id and name.
-
-    Raises:
-        DatabaseError: If there's an error retrieving the categories.
+        NotFoundError: If no program exists with the given ID.
+        DatabaseError: If there's an error retrieving the program.
     """
     cursor = db.get_db().cursor()
     try:
-        offset = (page - 1) * limit
-        cursor.execute('SELECT * FROM categories ORDER BY name LIMIT %s OFFSET %s', (limit, offset))
-        return cursor.fetchall()
-    except MySQLError as e:
-        raise DatabaseError(str(e))
-    finally:
-        cursor.close()
-
-def get_category_by_id(category_id: str) -> Dict[str, Any]:
-    """
-    Retrieve a specific category by its ID.
-
-    Args:
-        category_id (str): The UUID of the category to retrieve.
-
-    Returns:
-        Dict[str, Any]: The category with its ID and name.
-
-    Raises:
-        NotFoundError: If no category exists with the given ID.
-        DatabaseError: If there's an error retrieving the category.
-    """
-    cursor = db.get_db().cursor()
-    try:
-        cursor.execute('SELECT * FROM categories WHERE id = %s', (category_id,))
+        cursor.execute('SELECT * FROM programs WHERE id = %s', (category_id,))
         result = cursor.fetchone()
         if not result:
-            raise NotFoundError(f"Category with id {category_id} does not exist")
+            raise NotFoundError(f"Program with id {category_id} does not exist")
         return result
     except MySQLError as e:
         raise DatabaseError(str(e))
