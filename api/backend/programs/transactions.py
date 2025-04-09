@@ -1,6 +1,6 @@
 from typing import Dict, List, Any
 from backend.database import db
-from backend.utilities.errors import DatabaseError, ConflictError, NotFoundError
+from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
 
 def retrieve_program(program_id: str) -> Dict[str, Any]:
@@ -348,9 +348,9 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
         user_profile = params.get('user_profile', {})
         is_qualified = params.get('is_qualified', None)
 
-        if 'user_id' in params:  # Only apply qualifications if user_id is present
+        if 'user_id' in params:  # only apply qualifications if user_id is present
             if is_qualified is not None:
-                if is_qualified:  # True, the user must meet all qualifications
+                if is_qualified:  # true, the user must meet all qualifications
                     query += """
                         AND NOT EXISTS (
                             SELECT 1 FROM qualifications q
@@ -377,12 +377,12 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
                         user_profile.get('veteran_status')
                     ])
 
-        # Add sorting
+        # add sorting
         sort_field = params.get('sort_by', 'created_at')
         sort_order = params.get('sort_order', 'DESC')
         query += f" ORDER BY p.{sort_field} {sort_order}"
 
-        # Add pagination
+        # add pagination
         page = params.get('page', 1)
         limit = params.get('limit', 10)
         offset = (page - 1) * limit

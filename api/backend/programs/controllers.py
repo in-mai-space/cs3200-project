@@ -1,13 +1,11 @@
 from backend.validators.programs import ProgramUpdateSchema
-from backend.programs.transactions import get_program_app_stats, get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info
+from backend.programs.transactions import get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info
 from backend.utilities.pagination import validate_pagination
-from flask import Blueprint, request, jsonify
-from backend.utilities.errors import handle_error
+from flask import Blueprint, request, jsonify, Response
+from backend.utilities.errors import ValidationError, handle_error
 from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
-from typing import Response
 from backend.validators.search import validate_search_params
-from backend.utilities.errors import BadRequestError
 
 #------------------------------------------------------------
 # Create a new Blueprint object, which is a collection of 
@@ -102,9 +100,9 @@ def get_trends() -> tuple[Response, int]:
         return handle_error(e)
     
 #------------------------------------------------------------
-# Get the trends of applications over time
+# Get the retention of users in the app (applying to more than one program)
 @programs.route('/retentions', methods=['GET'])
-def get_trends() -> tuple[Response, int]:
+def get_retention() -> tuple[Response, int]:
     try:
         page, limit = validate_pagination()
         program = get_program_retention(page, limit)
@@ -125,7 +123,7 @@ def update_program(program_id) -> tuple[Response, int]:
         if updated_program:
             return jsonify(updated_program), HTTPStatus.OK  
         else:
-            raise BadRequestError(f"Program with id {program_id} does not exist")
+            raise ValidationError(f"Program with id {program_id} does not exist")
     
     except Exception as e:
         return handle_error(e)

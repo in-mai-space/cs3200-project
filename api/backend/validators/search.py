@@ -1,8 +1,38 @@
-from api.backend.utilities.uuid import validate_uuid
+from backend.utilities.uuid import validate_uuid
 from flask import request
-from api.backend.validators.search import SearchQueryParamSchema  # update path if needed
-from api.backend.utilities.pagination import validate_pagination
-from marshmallow import ValidationError
+from backend.utilities.pagination import validate_pagination
+from marshmallow import Schema, fields, validates, ValidationError, validate
+
+class SearchQueryParamSchema(Schema):
+    search_query = fields.Str(allow_none=True)
+    categories = fields.List(fields.Str(), allow_none=True)
+    location = fields.Dict(keys=fields.Str(), values=fields.Str(), allow_none=True)
+    is_qualified = fields.Bool(allow_none=True)
+    sort_by = fields.Str(
+        validate=validate.Regexp("^(name|start_date|deadline)$"),
+        allow_none=True
+    )
+    sort_order = fields.Str(
+        validate=validate.Regexp("^(asc|desc)$"),
+        allow_none=True
+    )
+
+    @validates("location")
+    def validate_location(self, value):
+        allowed_fields = {"city", "state", "zip_code", "country"}
+        if not all(k in allowed_fields for k in value):
+            raise ValidationError("Invalid location field")
+
+    @validates("categories")
+    def validate_categories(self, value):
+        if not all(isinstance(cat, str) for cat in value):
+            raise ValidationError("Categories must be strings")
+
+    @validates("is_qualified")
+    def validate_is_qualified(self, value):
+        if not isinstance(value, bool):
+            raise ValidationError("is_qualified must be a boolean")
+
 
 def validate_search_params():
     """
