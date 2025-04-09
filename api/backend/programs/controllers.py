@@ -29,6 +29,7 @@ def search() -> Tuple[Response, int]:
     try:
         page, limit = validate_pagination()
 
+        # TODO: handle validation of query params
 
         program = search_program(page, limit, categories, location, search_term, is_qualified, sort_by)
 
