@@ -1,5 +1,15 @@
 version: '3'
 tasks:
+  all:build:
+    desc: "Build all containers"
+    cmds:
+      - docker compose build
+  
+  test:build:
+    desc: "Build test containers"
+    cmds:
+      - docker compose -f docker-compose-testing.yaml build
+  
   all:up:
     desc: "Run all containers"
     cmds:

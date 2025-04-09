@@ -12,7 +12,6 @@ from backend.database import db
 # routes.
 organizations = Blueprint('organizations', __name__)
 
-
 #------------------------------------------------------------
 # Get all customers from the system
 @organizations.route('/', methods=['GET'])
