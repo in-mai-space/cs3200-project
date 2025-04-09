@@ -1,5 +1,5 @@
 from backend.validators.programs import ProgramUpdateSchema
-from backend.programs.transactions import remove_program, retrieve_program, update_program_info
+from backend.programs.transactions import get_program_app_stats, get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info
 from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify
 from backend.utilities.errors import handle_error
@@ -27,12 +27,12 @@ def get_program(program_id: str) -> tuple[Response, int]:
         return handle_error(e)
     
 #------------------------------------------------------------
-# Get a specific program
+# Search for programs
 @programs.route('/search', methods=['GET'])
 def search() -> tuple[Response, int]:
     try:
-        validated_params = validate_search_params()
-        programs = search_program(validated_params)
+        params = validate_search_params()
+        programs = search_program(params)
         return jsonify(programs), HTTPStatus.OK
 
     except Exception as e:
@@ -78,26 +78,36 @@ def get_applications(program_id: str) -> tuple[Response, int]:
         return handle_error(e)
 
 #------------------------------------------------------------
-# Get the stats of how applications change over time
-@programs.route('/<string:program_id>/applications/stats', methods=['GET'])
-def get_applications_stats(program_id: str) -> tuple[Response, int]:
+# Get the stats of feedbacks of the program
+@programs.route('/<string:program_id>/feedbacks/stats', methods=['GET'])
+def get_feedback_stats(program_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(program_id)
-        page, limit = validate_pagination()
-        program = get_program_app_stats(program_id, page, limit)
+        program = get_program_stats(program_id)
         return jsonify(program), HTTPStatus.OK
 
     except Exception as e:
         return handle_error(e)
     
 #------------------------------------------------------------
-# Get the retention of programs
-@programs.route('/<string:program_id>/retention', methods=['GET'])
-def get_retention(program_id: str) -> tuple[Response, int]:
+# Get the trends of applications over time
+@programs.route('/trends', methods=['GET'])
+def get_trends() -> tuple[Response, int]:
     try:
-        validate_uuid(program_id) 
         page, limit = validate_pagination()
-        program = get_program_retention(program_id, page, limit)
+        program = get_program_trends(page, limit)
+        return jsonify(program), HTTPStatus.OK
+
+    except Exception as e:
+        return handle_error(e)
+    
+#------------------------------------------------------------
+# Get the trends of applications over time
+@programs.route('/retentions', methods=['GET'])
+def get_trends() -> tuple[Response, int]:
+    try:
+        page, limit = validate_pagination()
+        program = get_program_retention(page, limit)
         return jsonify(program), HTTPStatus.OK
 
     except Exception as e:
