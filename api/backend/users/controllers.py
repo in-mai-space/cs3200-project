@@ -13,13 +13,12 @@ from http import HTTPStatus
 users = Blueprint('users', __name__)
 
 # Tony's code ========================================================
-# Create a user
+# POST endpoint for creating a user
 @users.route('/', methods=['POST'], strict_slashes=False)
 def create_user() -> Tuple[Any, int]:
     try:
-        # Validate the request body (using a schema if available)
-        # For example, using Marshmallow you might do:
-        user_schema = UserSchema()  # Ensure you have defined a proper schema for user data.
+        # Validate the request body using a schema
+        user_schema = UserSchema() 
         data = user_schema.load(request.json)
 
         # Insert the user record into the database.
@@ -27,14 +26,13 @@ def create_user() -> Tuple[Any, int]:
         return jsonify(result), HTTPStatus.CREATED
 
     except Exception as e:
-        # Centralized error handling; you might have a dedicated error handler function.
         return handle_error(e)
     
     # New GET endpoint for retrieving a user by id.
 @users.route('/<string:user_id>', methods=['GET'], strict_slashes=False)
 def get_user(user_id: str) -> Tuple[Any, int]:
     try:
-        # Optionally validate the user_id format (e.g., checking if it is a valid UUID)
+        # validating via user_id
         validate_uuid(user_id)
 
         # Retrieve the user record from the database.
@@ -42,7 +40,6 @@ def get_user(user_id: str) -> Tuple[Any, int]:
         return jsonify(user), HTTPStatus.OK
 
     except NotFoundError as e:
-        # If your error handler differentiates not found errors
         return handle_error(e)
     except Exception as e:
         return handle_error(e)
