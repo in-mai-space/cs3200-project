@@ -6,3 +6,5 @@ flask-mysql==1.5.2
 cryptography==38.0.1
 python-dotenv==1.0.1
 numpy==1.26.4
+marshmallow==3.19.0
+mysql-connector-python==8.2.0

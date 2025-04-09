@@ -6,6 +6,8 @@ services:
     volumes: ["./app/src:/appcode"]
     ports:
       - 8501:8501
+    networks:
+      - uplift-network
 
   api:
     build: ./api
@@ -14,6 +16,11 @@ services:
     volumes: ["./api:/apicode"]
     ports:
       - 4000:4000
+    networks:
+      - uplift-network
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     env_file:
@@ -25,3 +32,15 @@ services:
       - ./database-files:/docker-entrypoint-initdb.d/:ro
     ports:
       - 3200:3306
+    networks:
+      - uplift-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  uplift-network:
+    driver: bridge
