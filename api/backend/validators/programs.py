@@ -55,31 +55,31 @@ class QualificationSchema(Schema):
         if value is not None and value < 0:
             raise ValidationError("max_value cannot be negative")
 
-    @validates_schema
-    def validate_qualification_values(self, data, **kwargs):
-        qual_type = data.get('qualification_type')
+    # @validates_schema
+    # def validate_qualification_values(self, data, **kwargs):
+    #     qual_type = data.get('qualification_type')
         
-        if qual_type == QualificationType.INCOME:
-            if data.get('min_value') is None and data.get('max_value') is None:
-                raise ValidationError("Income qualification requires at least min_value or max_value")
-        elif qual_type == QualificationType.AGE:
-            if data.get('min_value') is None and data.get('max_value') is None:
-                raise ValidationError("Age qualification requires at least min_value or max_value")
-        elif qual_type == QualificationType.FAMILY_SIZE:
-            if data.get('min_value') is None and data.get('max_value') is None:
-                raise ValidationError("Family size qualification requires at least min_value or max_value")
-        elif qual_type == QualificationType.LOCATION:
-            if data.get('text_value') is None:
-                raise ValidationError("Location qualification requires text_value")
-        elif qual_type == QualificationType.EDUCATION:
-            if data.get('text_value') is None and data.get('min_value') is None:
-                raise ValidationError("Education qualification requires text_value or min_value")
-        elif qual_type in [QualificationType.DISABILITY, QualificationType.VETERAN_STATUS]:
-            if data.get('boolean_value') is None:
-                raise ValidationError(f"{qual_type.value} qualification requires boolean_value")
-        elif qual_type == QualificationType.OTHER:
-            if data.get('text_value') is None and data.get('boolean_value') is None:
-                raise ValidationError("Other qualification requires text_value or boolean_value")
+    #     if qual_type == QualificationType.INCOME:
+    #         if data.get('min_value') is None and data.get('max_value') is None:
+    #             raise ValidationError("Income qualification requires at least min_value or max_value")
+    #     elif qual_type == QualificationType.AGE:
+    #         if data.get('min_value') is None and data.get('max_value') is None:
+    #             raise ValidationError("Age qualification requires at least min_value or max_value")
+    #     elif qual_type == QualificationType.FAMILY_SIZE:
+    #         if data.get('min_value') is None and data.get('max_value') is None:
+    #             raise ValidationError("Family size qualification requires at least min_value or max_value")
+    #     elif qual_type == QualificationType.LOCATION:
+    #         if data.get('text_value') is None:
+    #             raise ValidationError("Location qualification requires text_value")
+    #     elif qual_type == QualificationType.EDUCATION:
+    #         if data.get('text_value') is None and data.get('min_value') is None:
+    #             raise ValidationError("Education qualification requires text_value or min_value")
+    #     elif qual_type in [QualificationType.DISABILITY, QualificationType.VETERAN_STATUS]:
+    #         if data.get('boolean_value') is None:
+    #             raise ValidationError(f"{qual_type.value} qualification requires boolean_value")
+    #     elif qual_type == QualificationType.OTHER:
+    #         if data.get('text_value') is None and data.get('boolean_value') is None:
+    #             raise ValidationError("Other qualification requires text_value or boolean_value")
 
 class ProgramBaseSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
@@ -129,33 +129,3 @@ class ProgramUpdateSchema(Schema):
         start_date = self.context.get("start_date")
         if start_date and value.date() < start_date:
             raise ValidationError("deadline must be after start_date")
-
-class SearchQueryParamSchema(Schema):
-    search_query = fields.Str(allow_none=True)
-    categories = fields.List(fields.Str(), allow_none=True)
-    location = fields.Dict(keys=fields.Str(), values=fields.Str(), allow_none=True)
-    is_qualified = fields.Bool(allow_none=True)
-    sort_by = fields.Str(
-        validate=validate.Regexp("^(name|start_date|deadline)$"),
-        allow_none=True
-    )
-    sort_order = fields.Str(
-        validate=validate.Regexp("^(asc|desc)$"),
-        allow_none=True
-    )
-
-    @validates("location")
-    def validate_location(self, value):
-        allowed_fields = {"city", "state", "zip_code", "country"}
-        if not all(k in allowed_fields for k in value):
-            raise ValidationError("Invalid location field")
-
-    @validates("categories")
-    def validate_categories(self, value):
-        if not all(isinstance(cat, str) for cat in value):
-            raise ValidationError("Categories must be strings")
-
-    @validates("is_qualified")
-    def validate_is_qualified(self, value):
-        if not isinstance(value, bool):
-            raise ValidationError("is_qualified must be a boolean")

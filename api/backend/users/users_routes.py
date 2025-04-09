@@ -2,101 +2,69 @@
 # Sample customers blueprint of endpoints
 # Remove this file if you are not using it in your project
 ########################################################
-from flask import Blueprint, request, jsonify
+from flask import Blueprint
+from flask import request
+from flask import jsonify
 from flask import make_response
 from flask import current_app
 from backend.database import db
-from backend.utils.query_validation import (
-    validate_query_params,
-    validate_category_param
-)
 
 #------------------------------------------------------------
 # Create a new Blueprint object, which is a collection of 
 # routes.
 users = Blueprint('users', __name__)
 
-# Define allowed query parameters
-ALLOWED_QUERY_PARAMS = [
-    'role',  # Example category from database
-    'status',
-    'created_after',
-    'created_before',
-    'limit',
-    'offset'
-]
+# TODO: change all of these to users
 
 #------------------------------------------------------------
 # Get all customers from the system
-@users.route('/', methods=['GET'])
+@users.route('/users', methods=['GET'])
 def get_users():
-    # Validate query parameters
-    validation_error = validate_query_params(
-        request.args,
-        ALLOWED_QUERY_PARAMS,
-        'Users'  # Table name for schema validation
-    )
-    if validation_error:
-        return validation_error
-    
-    # Validate role category if provided
-    if 'role' in request.args:
-        validation_error = validate_category_param(
-            request.args,
-            'role',
-            'Users',
-            'role'  # Column name containing roles
-        )
-        if validation_error:
-            return validation_error
-    
-    # Build query based on validated parameters
+
     cursor = db.get_db().cursor()
-    query = 'SELECT * FROM Users WHERE 1=1'
-    params = []
+    cursor.execute('''SELECT id, company, last_name,
+                    first_name, job_title, business_phone FROM customers
+    ''')
     
-    if 'role' in request.args:
-        query += ' AND role = %s'
-        params.append(request.args['role'])
+    theData = cursor.fetchall()
     
-    if 'status' in request.args:
-        query += ' AND status = %s'
-        params.append(request.args['status'])
-    
-    if 'created_after' in request.args:
-        query += ' AND created_at >= %s'
-        params.append(request.args['created_after'])
-    
-    if 'created_before' in request.args:
-        query += ' AND created_at <= %s'
-        params.append(request.args['created_before'])
-    
-    # Add pagination
-    limit = int(request.args.get('limit', 10))
-    offset = int(request.args.get('offset', 0))
-    query += ' LIMIT %s OFFSET %s'
-    params.extend([limit, offset])
-    
-    cursor.execute(query, params)
-    row_headers = [x[0] for x in cursor.description]
-    results = cursor.fetchall()
-    json_data = []
-    for result in results:
-        json_data.append(dict(zip(row_headers, result)))
-    return jsonify(json_data)
+    the_response = make_response(jsonify(theData))
+    the_response.status_code = 200
+    return the_response
+
+#------------------------------------------------------------
+# Update customer info for customer with particular userID
+#   Notice the manner of constructing the query.
+@users.route('/users', methods=['PUT'])
+def update_user():
+    current_app.logger.info('PUT /users route')
+    user_info = request.json
+    user_id = user_info['id']
+    first = user_info['first_name']
+    last = user_info['last_name']
+    company = user_info['company']
+
+    query = 'UPDATE customers SET first_name = %s, last_name = %s, company = %s where id = %s'
+    data = (first, last, company, user_id)
+    cursor = db.get_db().cursor()
+    r = cursor.execute(query, data)
+    db.get_db().commit()
+    return 'user updated!'
 
 #------------------------------------------------------------
 # Get customer detail for customer with particular userID
 #   Notice the manner of constructing the query. 
-@users.route('/<int:user_id>', methods=['GET'])
-def get_user(user_id):
+@users.route('/users/<userID>', methods=['GET'])
+def get_user(userID):
+    current_app.logger.info('GET /users/<userID> route')
     cursor = db.get_db().cursor()
-    cursor.execute('SELECT * FROM Users WHERE user_id = %s', (user_id,))
-    row_headers = [x[0] for x in cursor.description]
-    result = cursor.fetchone()
-    if result:
-        return jsonify(dict(zip(row_headers, result)))
-    return jsonify({"error": "User not found"}), 404
+    cursor.execute('SELECT id, first_name, last_name FROM users WHERE id = {0}'.format(userID))
+    
+    theData = cursor.fetchall()
+    
+    the_response = make_response(jsonify(theData))
+    the_response.status_code = 200
+    return the_response
 
 #------------------------------------------------------------
 # Makes use of the very simple ML model in to predict a value
@@ -113,49 +81,3 @@ def predict_value(var01, var02):
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
     return the_response
-
-@users.route('/', methods=['POST'])
-def create_user():
-    data = request.json
-    cursor = db.get_db().cursor()
-    try:
-        cursor.execute(
-            'INSERT INTO Users (email, password, first_name, last_name, phone, date_of_birth) VALUES (%s, %s, %s, %s, %s, %s)',
-            (data['email'], data['password'], data['first_name'], data['last_name'], 
-             data.get('phone'), data.get('date_of_birth'))
-        )
-        db.get_db().commit()
-        return jsonify({"message": "User created successfully"}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-@users.route('/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    data = request.json
-    cursor = db.get_db().cursor()
-    try:
-        update_fields = []
-        values = []
-        for key in ['email', 'password', 'first_name', 'last_name', 'phone', 'date_of_birth']:
-            if key in data:
-                update_fields.append(f"{key} = %s")
-                values.append(data[key])
-        if not update_fields:
-            return jsonify({"error": "No fields to update"}), 400
-        values.append(user_id)
-        query = f"UPDATE Users SET {', '.join(update_fields)} WHERE user_id = %s"
-        cursor.execute(query, values)
-        db.get_db().commit()
-        return jsonify({"message": "User updated successfully"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-@users.route('/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    cursor = db.get_db().cursor()
-    try:
-        cursor.execute('DELETE FROM Users WHERE user_id = %s', (user_id,))
-        db.get_db().commit()
-        return jsonify({"message": "User deleted successfully"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400

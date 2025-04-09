@@ -1,4 +1,4 @@
-from api.backend.utilities.pagination import validate_pagination
+from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify, Response
 from backend.validators.categories import CategorySchema, CategoryUpdateSchema
 from backend.categories.transactions import (

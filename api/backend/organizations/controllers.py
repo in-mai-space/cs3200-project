@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from api.backend.organizations.transactions import insert_program
+from backend.organizations.transactions import insert_program
 from backend.utilities.errors import handle_error
 from backend.utilities.uuid import validate_uuid
 from flask import Blueprint, request, jsonify, Response
