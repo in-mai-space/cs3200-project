@@ -29,3 +29,28 @@ def insert_user(data: Dict[str, str]) -> Dict[str, Any]:
         raise DatabaseError(str(e))
     finally:
         cursor.close()
+
+def get_user_by_id(user_id: str) -> Dict[str, Any]:
+    """
+    Fetch the user record from the database by user id.
+
+    Args:
+        user_id (str): The unique identifier of the user.
+
+    Returns:
+        Dict[str, Any]: The user record if found.
+
+    Raises:
+        DatabaseError: If there's an error fetching the user.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise DatabaseError("User not found")
+        return result
+    except MySQLError as e:
+        raise DatabaseError(f"Error fetching user: {str(e)}")
+    finally:
+        cursor.close()
