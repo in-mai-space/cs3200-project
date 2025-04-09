@@ -54,3 +54,47 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
         raise DatabaseError(f"Error fetching user: {str(e)}")
     finally:
         cursor.close()
+
+def update_user(user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Update an existing user record in the database.
+
+    Args:
+        user_id (str): The UUID of the user to update.
+        update_data (Dict[str, Any]): Dictionary containing the fields to update.
+            Supported keys are 'first_name', 'last_name', and 'type'.
+
+    Returns:
+        Dict[str, Any]: The updated user record.
+
+    Raises:
+        NotFoundError: If no user exists with the given ID.
+        DatabaseError: If there's an error updating the user.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        update_fields = []
+        values = []
+        # Loop only over allowed keys:
+        for key in ['first_name', 'last_name', 'type']:
+            if key in update_data:
+                update_fields.append(f"{key} = %s")
+                values.append(update_data[key])
+        if not update_fields:
+            raise DatabaseError("No valid fields to update")
+        # Append the user_id for the WHERE clause
+        values.append(user_id)
+        query = f"UPDATE users SET {', '.join(update_fields)} WHERE id = %s"
+        cursor.execute(query, values)
+        db.get_db().commit()
+        
+        # Fetch the updated user record
+        cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise NotFoundError(f"User with id {user_id} does not exist")
+        return result
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
