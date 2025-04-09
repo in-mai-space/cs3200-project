@@ -1,6 +1,5 @@
-from typing import Dict, Any, Tuple
+from typing import Tuple
 from flask import Blueprint, request, jsonify, Response
-from marshmallow import ValidationError
 from backend.validators.categories import CategorySchema, CategoryUpdateSchema
 from backend.categories.transactions import (
     create_category,
@@ -9,7 +8,7 @@ from backend.categories.transactions import (
     update_category,
     delete_category
 )
-from backend.utilities.errors import handle_error
+from backend.utilities.errors import handle_error, BadRequestError
 from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
 
