@@ -10,6 +10,17 @@ class LocationType(str, Enum):
     VIRTUAL = "virtual"
     PHYSICAL = "physical"
 
+class QualificationType(str, Enum):
+    INCOME = "income"
+    AGE = "age"
+    FAMILY_SIZE = "family_size"
+    LOCATION = "location"
+    EDUCATION = "education"
+    DISABILITY = "disability"
+    VETERAN_STATUS = "veteran_status"
+    CITIZENSHIP = "citizenship"
+    OTHER = "other"
+
 class LocationBaseSchema(Schema):
     type = EnumField(LocationType, required=True)
     address_line1 = fields.Str(allow_none=True)
@@ -25,6 +36,51 @@ class LocationBaseSchema(Schema):
         if not value.isdigit() or len(value) not in [5, 9]:
             raise ValidationError("Zip code must be 5 or 9 digits")
 
+class QualificationSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
+    description = fields.Str(required=True, validate=validate.Length(min=1))
+    qualification_type = EnumField(QualificationType, required=True)
+    min_value = fields.Decimal(allow_none=True)
+    max_value = fields.Decimal(allow_none=True)
+    text_value = fields.Str(allow_none=True)
+    boolean_value = fields.Bool(allow_none=True)
+
+    @validates("min_value")
+    def validate_min_value(self, value, **kwargs):
+        if value is not None and value < 0:
+            raise ValidationError("min_value cannot be negative")
+
+    @validates("max_value")
+    def validate_max_value(self, value, **kwargs):
+        if value is not None and value < 0:
+            raise ValidationError("max_value cannot be negative")
+
+    @validates_schema
+    def validate_qualification_values(self, data, **kwargs):
+        qual_type = data.get('qualification_type')
+        
+        if qual_type == QualificationType.INCOME:
+            if data.get('min_value') is None and data.get('max_value') is None:
+                raise ValidationError("Income qualification requires at least min_value or max_value")
+        elif qual_type == QualificationType.AGE:
+            if data.get('min_value') is None and data.get('max_value') is None:
+                raise ValidationError("Age qualification requires at least min_value or max_value")
+        elif qual_type == QualificationType.FAMILY_SIZE:
+            if data.get('min_value') is None and data.get('max_value') is None:
+                raise ValidationError("Family size qualification requires at least min_value or max_value")
+        elif qual_type == QualificationType.LOCATION:
+            if data.get('text_value') is None:
+                raise ValidationError("Location qualification requires text_value")
+        elif qual_type == QualificationType.EDUCATION:
+            if data.get('text_value') is None and data.get('min_value') is None:
+                raise ValidationError("Education qualification requires text_value or min_value")
+        elif qual_type in [QualificationType.DISABILITY, QualificationType.VETERAN_STATUS]:
+            if data.get('boolean_value') is None:
+                raise ValidationError(f"{qual_type.value} qualification requires boolean_value")
+        elif qual_type == QualificationType.OTHER:
+            if data.get('text_value') is None and data.get('boolean_value') is None:
+                raise ValidationError("Other qualification requires text_value or boolean_value")
+
 class ProgramBaseSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
     description = fields.Str(required=True, validate=validate.Length(min=1))
@@ -32,9 +88,9 @@ class ProgramBaseSchema(Schema):
     start_date = fields.Date(required=True)
     deadline = fields.DateTime(required=True)
     end_date = fields.Date(allow_none=True)
-    organization_id = fields.Str(required=True, validate=validate.Length(equal=36))
-    category_id = fields.Str(required=True, validate=validate.Length(equal=36))
+    category_ids = fields.List(fields.Str(validate=validate.Length(equal=36)), required=True, validate=validate.Length(min=1))
     locations = fields.List(fields.Nested(LocationBaseSchema), required=True, validate=validate.Length(min=1))
+    qualifications = fields.List(fields.Nested(QualificationSchema), allow_none=True)
 
     @validates("end_date")
     def validate_end_date(self, value, **kwargs):
@@ -58,9 +114,9 @@ class ProgramUpdateSchema(Schema):
     start_date = fields.Date(allow_none=True)
     deadline = fields.DateTime(allow_none=True)
     end_date = fields.Date(allow_none=True)
-    organization_id = fields.Str(validate=validate.Length(equal=36), allow_none=True)
-    category_id = fields.Str(validate=validate.Length(equal=36), allow_none=True)
+    category_ids = fields.List(fields.Str(validate=validate.Length(equal=36)), allow_none=True)
     locations = fields.List(fields.Nested(LocationBaseSchema), allow_none=True)
+    qualifications = fields.List(fields.Nested(QualificationSchema), allow_none=True)
 
     @validates("end_date")
     def validate_end_date(self, value, **kwargs):

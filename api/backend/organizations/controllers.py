@@ -1,8 +1,9 @@
 from http import HTTPStatus
+from api.backend.organizations.transactions import insert_program
 from backend.utilities.errors import handle_error
 from backend.utilities.uuid import validate_uuid
-from programs import ProgramSchema
 from flask import Blueprint, request, jsonify, Response
+from backend.validators.programs import ProgramCreateSchema
 
 #------------------------------------------------------------
 # Create a new Blueprint object, which is a collection of 
@@ -16,10 +17,10 @@ def create_program(id: str) -> tuple[Response, int]:
     try:
         validate_uuid(id)
 
-        program_schema = ProgramSchema()
+        program_schema = ProgramCreateSchema()
         data = program_schema.load(request.json)
 
-        result = insert_program(data)
+        result = insert_program(id, data)
         return jsonify(result), HTTPStatus.CREATED
     
     except Exception as e:

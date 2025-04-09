@@ -1,10 +1,13 @@
-from api.backend.utilities.pagination import validate_pagination
+from backend.validators.programs import ProgramUpdateSchema
+from backend.programs.transactions import remove_program, retrieve_program, update_program_info
+from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify
 from backend.utilities.errors import handle_error
 from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
 from typing import Response
-from api.backend.validators.search import validate_search_params
+from backend.validators.search import validate_search_params
+from backend.utilities.errors import BadRequestError
 
 #------------------------------------------------------------
 # Create a new Blueprint object, which is a collection of 
@@ -106,10 +109,13 @@ def get_retention(program_id: str) -> tuple[Response, int]:
 def update_program(program_id) -> tuple[Response, int]:
     try:
         validate_uuid(program_id)
-        program_schema = UpdateProgramSchema()
+        program_schema = ProgramUpdateSchema()
         data = program_schema.load(request.json)
         updated_program = update_program_info(program_id, data)
-        return jsonify(updated_program), HTTPStatus.OK
+        if updated_program:
+            return jsonify(updated_program), HTTPStatus.OK  
+        else:
+            raise BadRequestError(f"Program with id {program_id} does not exist")
     
     except Exception as e:
         return handle_error(e)
