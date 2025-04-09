@@ -1,9 +1,7 @@
-from typing import Dict, List, Any
+from typing import Dict, Any
 from backend.database import db
 from backend.utilities.errors import DatabaseError, ConflictError, NotFoundError
 from mysql.connector import Error as MySQLError
-from backend.utilities.uuid import validate_uuid
-from backend.validators.programs import ProgramSchema
 
 def create_program(data: Dict[str, str]) -> Dict[str, Any]:
     """
