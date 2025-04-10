@@ -5,9 +5,6 @@ from backend.utilities.uuid import validate_uuid
 from flask import Blueprint, request, jsonify, Response
 from backend.validators.programs import ProgramCreateSchema
 
-#------------------------------------------------------------
-# Create a new Blueprint object, which is a collection of 
-# routes.
 organizations = Blueprint('organizations', __name__)
 
 #------------------------------------------------------------

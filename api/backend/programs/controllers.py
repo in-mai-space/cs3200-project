@@ -7,9 +7,6 @@ from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
 from backend.validators.search import validate_search_params
 
-#------------------------------------------------------------
-# Create a new Blueprint object, which is a collection of 
-# routes.
 programs = Blueprint('programs', __name__)
 
 #------------------------------------------------------------
