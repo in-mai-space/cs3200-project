@@ -12,15 +12,23 @@ def retrieve_program(program_id: str) -> Dict[str, Any]:
                 o.name as organization_name,
                 GROUP_CONCAT(DISTINCT CONCAT(c.id, ':', c.name)) as categories,
                 GROUP_CONCAT(DISTINCT CONCAT(l.id, ':', l.location_type, ':', l.type, ':', l.address_line1, ':', l.address_line2, ':', l.city, ':', l.state, ':', l.zip_code, ':', l.country, ':', l.is_primary)) as locations,
-                GROUP_CONCAT(DISTINCT CONCAT(q.name, ':', q.description, ':', q.qualification_type, ':', q.min_value, ':', q.max_value, ':', q.text_value, ':', q.boolean_value)) as qualifications
+                GROUP_CONCAT(DISTINCT CONCAT(
+                    COALESCE(q.name, ''), ':',
+                    COALESCE(q.description, ''), ':',
+                    COALESCE(q.qualification_type, ''), ':',
+                    COALESCE(q.min_value, ''), ':',
+                    COALESCE(q.max_value, ''), ':',
+                    COALESCE(q.text_value, ''), ':',
+                    COALESCE(q.boolean_value, '0')
+                )) as qualifications
             FROM programs p
-            JOIN organizations o ON p.organization_id = o.id
+            INNER JOIN organizations o ON p.organization_id = o.id
             LEFT JOIN program_categories pc ON p.id = pc.program_id
             LEFT JOIN categories c ON pc.category_id = c.id
             LEFT JOIN locations l ON p.id = l.entity_id AND l.location_type = 'program'
             LEFT JOIN qualifications q ON p.id = q.program_id
             WHERE p.id = %s
-            GROUP BY p.id
+            GROUP BY p.id, p.name, p.description, p.status, p.start_date, p.deadline, p.end_date, p.organization_id, o.name
         ''', (program_id,))
         
         program = cursor.fetchone()
@@ -59,15 +67,16 @@ def retrieve_program(program_id: str) -> Dict[str, Any]:
         if program['qualifications']:
             program['qualifications'] = [
                 {
-                    'name': qual.split(':')[0],
-                    'description': qual.split(':')[1],
-                    'qualification_type': qual.split(':')[2],
-                    'min_value': qual.split(':')[3],
-                    'max_value': qual.split(':')[4],
-                    'text_value': qual.split(':')[5],
-                    'boolean_value': qual.split(':')[6] == '1'
+                    'name': qual.split(':')[0] or None,
+                    'description': qual.split(':')[1] or None,
+                    'qualification_type': qual.split(':')[2] or None,
+                    'min_value': qual.split(':')[3] or None,
+                    'max_value': qual.split(':')[4] or None,
+                    'text_value': qual.split(':')[5] or None,
+                    'boolean_value': qual.split(':')[6] == '1' if qual.split(':')[6] else None
                 }
                 for qual in program['qualifications'].split(',')
+                if any(qual.split(':'))  # Only include if any field is non-empty
             ]
         else:
             program['qualifications'] = []
@@ -348,81 +357,83 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
     cursor = db.get_db().cursor()
     try:
         query = """
-            SELECT DISTINCT p.*, o.name as organization_name
+            SELECT 
+                p.id, 
+                p.name, 
+                p.description, 
+                p.status, 
+                p.start_date, 
+                p.deadline, 
+                p.end_date, 
+                o.name as organization_name,
+                GROUP_CONCAT(DISTINCT CONCAT(c.id, ':', c.name)) as categories,
+                GROUP_CONCAT(DISTINCT CONCAT(l.id, ':', l.location_type, ':', l.type, ':', l.address_line1, ':', l.address_line2, ':', l.city, ':', l.state, ':', l.zip_code, ':', l.country, ':', l.is_primary)) as locations,
+                GROUP_CONCAT(DISTINCT CONCAT(
+                    COALESCE(q.name, ''), ':',
+                    COALESCE(q.description, ''), ':',
+                    COALESCE(q.qualification_type, ''), ':',
+                    COALESCE(q.min_value, ''), ':',
+                    COALESCE(q.max_value, ''), ':',
+                    COALESCE(q.text_value, ''), ':',
+                    COALESCE(q.boolean_value, '0')
+                )) as qualifications
             FROM programs p
-            JOIN organizations o ON p.organization_id = o.id
+            INNER JOIN organizations o ON p.organization_id = o.id
             LEFT JOIN program_categories pc ON p.id = pc.program_id
             LEFT JOIN categories c ON pc.category_id = c.id
             LEFT JOIN locations l ON p.id = l.entity_id AND l.location_type = 'program'
             LEFT JOIN qualifications q ON p.id = q.program_id
             WHERE 1=1
+            GROUP BY p.id, p.name, p.description, p.status, p.start_date, p.deadline, p.end_date, o.name
         """
         query_params = []
 
-        if 'search_query' in params and params['search_query']:
+        # Handle user_id if present and not None
+        if params.get('user_id') is not None:
+            query += " AND EXISTS (SELECT 1 FROM applications a WHERE a.program_id = p.id AND a.user_id = %s)"
+            query_params.append(params['user_id'])
+
+        # Handle search query if present
+        if params.get('search_query'):
             query += " AND (p.name LIKE %s OR p.description LIKE %s OR o.name LIKE %s)"
             search_term = f"%{params['search_query']}%"
             query_params.extend([search_term, search_term, search_term])
 
-        if 'category_ids' in params and params['category_ids']:
-            query += " AND c.id IN (%s)" % ','.join(['%s'] * len(params['category_ids']))
-            query_params.extend(params['category_ids'])
+        # Handle categories if present and not empty
+        categories = params.get('categories', [])
+        if categories:
+            query += " AND c.id IN (%s)" % ','.join(['%s'] * len(categories))
+            query_params.extend(categories)
 
-        if 'start_date' in params and params['start_date']:
-            query += " AND p.start_date >= %s"
-            query_params.append(params['start_date'])
-        if 'end_date' in params and params['end_date']:
-            query += " AND p.end_date <= %s"
-            query_params.append(params['end_date'])
+        # Handle location if present and not None
+        location = params.get('location')
+        if location is not None:
+            location_conditions = []
+            if location.get('city'):
+                location_conditions.append("l.city = %s")
+                query_params.append(location['city'])
+            if location.get('state'):
+                location_conditions.append("l.state = %s")
+                query_params.append(location['state'])
+            if location.get('zip_code'):
+                location_conditions.append("l.zip_code = %s")
+                query_params.append(location['zip_code'])
+            if location.get('country'):
+                location_conditions.append("l.country = %s")
+                query_params.append(location['country'])
+            
+            if location_conditions:
+                query += " AND (" + " OR ".join(location_conditions) + ")"
+            else:
+                # If no location conditions were added, we need to ensure we only get programs with locations
+                query += " AND l.id IS NOT NULL"
 
-        if 'city' in params and params['city']:
-            query += " AND l.city = %s"
-            query_params.append(params['city'])
-        if 'state' in params and params['state']:
-            query += " AND l.state = %s"
-            query_params.append(params['state'])
-        if 'zip_code' in params and params['zip_code']:
-            query += " AND l.zip_code = %s"
-            query_params.append(params['zip_code'])
-
-        user_profile = params.get('user_profile', {})
-        is_qualified = params.get('is_qualified', None)
-
-        if 'user_id' in params:
-            if is_qualified is not None:
-                if is_qualified:
-                    query += """
-                        AND NOT EXISTS (
-                            SELECT 1 FROM qualifications q
-                            WHERE q.program_id = p.id
-                            AND NOT (
-                                (q.qualification_type = 'income' AND %s BETWEEN q.min_value AND q.max_value) OR
-                                (q.qualification_type = 'age' AND TIMESTAMPDIFF(YEAR, %s, CURDATE()) BETWEEN q.min_value AND q.max_value) OR
-                                (q.qualification_type = 'family_size' AND %s BETWEEN q.min_value AND q.max_value) OR
-                                (q.qualification_type = 'location' AND l.city = q.text_value) OR
-                                (q.qualification_type = 'education' AND %s = q.text_value) OR
-                                (q.qualification_type = 'disability' AND %s = q.boolean_value) OR
-                                (q.qualification_type = 'veteran_status' AND %s = q.boolean_value)
-                            )
-                        )
-                    """
-                    # Add user profile values for each qualification
-                    query_params.extend([
-                        user_profile.get('income'),
-                        user_profile.get('date_of_birth'),
-                        user_profile.get('family_size'),
-                        user_profile.get('location'),
-                        user_profile.get('education_level'),
-                        user_profile.get('disability_status'),
-                        user_profile.get('veteran_status')
-                    ])
-
-        # add sorting
+        # Handle sorting
         sort_field = params.get('sort_by', 'created_at')
         sort_order = params.get('sort_order', 'DESC')
         query += f" ORDER BY p.{sort_field} {sort_order}"
 
-        # add pagination
+        # Handle pagination
         page = params.get('page', 1)
         limit = params.get('limit', 10)
         offset = (page - 1) * limit
@@ -430,14 +441,63 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
         query_params.extend([limit, offset])
 
         cursor.execute(query, query_params)
-        columns = [desc[0] for desc in cursor.description]
-        results = []
+        results = cursor.fetchall()
         
-        for row in cursor.fetchall():
-            result = dict(zip(columns, row))
-            results.append(result)
+        # Parse the concatenated strings into proper data structures
+        parsed_results = []
+        for row in results:
+            program = dict(row)
             
-        return results
+            # Parse categories
+            if program['categories']:
+                program['categories'] = [
+                    {'id': cat.split(':')[0], 'name': cat.split(':')[1]}
+                    for cat in program['categories'].split(',')
+                ]
+            else:
+                program['categories'] = []
+
+            # Parse locations
+            if program['locations']:
+                program['locations'] = [
+                    {
+                        'id': loc.split(':')[0],
+                        'location_type': loc.split(':')[1],
+                        'type': loc.split(':')[2],
+                        'address_line1': loc.split(':')[3],
+                        'address_line2': loc.split(':')[4],
+                        'city': loc.split(':')[5],
+                        'state': loc.split(':')[6],
+                        'zip_code': loc.split(':')[7],
+                        'country': loc.split(':')[8],
+                        'is_primary': loc.split(':')[9] == '1'
+                    }
+                    for loc in program['locations'].split(',')
+                ]
+            else:
+                program['locations'] = []
+
+            # Parse qualifications
+            if program['qualifications']:
+                program['qualifications'] = [
+                    {
+                        'name': qual.split(':')[0] or None,
+                        'description': qual.split(':')[1] or None,
+                        'qualification_type': qual.split(':')[2] or None,
+                        'min_value': qual.split(':')[3] or None,
+                        'max_value': qual.split(':')[4] or None,
+                        'text_value': qual.split(':')[5] or None,
+                        'boolean_value': qual.split(':')[6] == '1' if qual.split(':')[6] else None
+                    }
+                    for qual in program['qualifications'].split(',')
+                    if any(qual.split(':'))  # Only include if any field is non-empty
+                ]
+            else:
+                program['qualifications'] = []
+
+            parsed_results.append(program)
+
+        return parsed_results
 
     except MySQLError as e:
         raise DatabaseError(str(e))
