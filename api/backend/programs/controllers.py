@@ -1,5 +1,5 @@
 from backend.validators.programs import ProgramCategorySchema, ProgramLocationSchema, ProgramQualificationSchema, ProgramUpdateSchema
-from backend.programs.transactions import get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info
+from backend.programs.transactions import get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info, upsert_categories, upsert_locations, upsert_qualifications
 from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify, Response
 from backend.utilities.errors import handle_error
