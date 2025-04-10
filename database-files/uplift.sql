@@ -4,7 +4,6 @@ USE uplift;
 
 DROP TABLE IF EXISTS feedback_forms;
 DROP TABLE IF EXISTS organization_locations;
-DROP TABLE IF EXISTS program_locations;
 DROP TABLE IF EXISTS program_categories;
 DROP TABLE IF EXISTS organization_categories;
 DROP TABLE IF EXISTS user_programs;
@@ -71,15 +70,12 @@ CREATE TABLE programs (
     deadline TIMESTAMP,
     end_date DATE,
     organization_id CHAR(36) NOT NULL,
-    category_id CHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_program_status (status),
     INDEX idx_program_deadline (deadline),
-    INDEX idx_program_category (category_id),
     INDEX idx_program_organization (organization_id),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories(id)
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
 
 CREATE TABLE qualifications (
@@ -199,15 +195,6 @@ CREATE TABLE program_categories (
     INDEX idx_program_category (program_id, category_id)
 );
 
-CREATE TABLE program_locations (
-    program_id CHAR(36) NOT NULL,
-    location_id CHAR(36) NOT NULL,
-    PRIMARY KEY (program_id, location_id),
-    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE,
-    FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE,
-    INDEX idx_program_location (program_id, location_id)
-);
-
 CREATE TABLE organization_locations (
     organization_id CHAR(36) NOT NULL,
     location_id CHAR(36) NOT NULL,
@@ -248,11 +235,11 @@ INSERT INTO categories VALUES
 ('91c3f74d-6b4a-48e7-b3d2-5fa740e9c9d7', 'Veterans');
 
 INSERT INTO programs VALUES
-('f3a47d9c-6c5b-42a8-95e1-c8f2b1d8c5f6', 'Emergency Rental Assistance', 'Financial support for rent payments during emergencies', 'open', '2024-01-15', '2024-07-15 23:59:59', '2024-12-31', 'b2f4a96d-9618-4f5f-8687-0519b20fbb4c', '78d6a9e8-6a19-40d0-9cc3-6a6bdf77586a', '2024-01-10 09:00:00', '2024-01-10 09:00:00'),
-('e2b48c7a-5d4e-41b7-84e0-b7f1c9d0a5e4', 'Scholarship Program', 'Educational scholarships for low-income students', 'open', '2024-02-01', '2024-05-30 23:59:59', '2025-06-30', '5c17cb90-6c3f-47f3-9893-8d00c75a8bb4', '2e345f0d-f984-4c1c-98a8-5c3d90ed71e4', '2024-01-11 10:00:00', '2024-01-11 10:00:00'),
-('d1a37b6d-4c3d-40a6-73d9-a6e0b8c9d4e3', 'Veteran Job Training', 'Employment training for veterans', 'open', '2024-03-01', '2024-08-31 23:59:59', '2024-12-15', '9f45b9c1-ae0a-4e5b-9b2d-cd6ba73e5c7d', '91c3f74d-6b4a-48e7-b3d2-5fa740e9c9d7', '2024-01-12 11:00:00', '2024-01-12 11:00:00'),
-('c0926a5c-3b2a-39a5-62c8-95d0a7b8c3d2', 'Healthcare Subsidy', 'Subsidies for medical care for low-income individuals', 'open', '2024-01-20', '2024-12-31 23:59:59', '2025-12-31', '1d893f83-4e8c-4ecb-a3bd-1da5cb88057f', '4a1b45c9-7630-4e14-bdfa-d38d1301185b', '2024-01-13 12:00:00', '2024-01-13 12:00:00'),
-('b9815a4b-2a19-28a4-51b7-84c9a6b7b2c1', 'Job Placement Assistance', 'Employment placement services', 'close', '2023-07-01', '2023-12-31 23:59:59', '2024-01-31', 'b2f4a96d-9618-4f5f-8687-0519b20fbb4c', 'd7a9c5b2-8f6e-4d31-9b5e-942a3bfea897', '2023-06-15 13:00:00', '2024-02-01 09:00:00');
+('f3a47d9c-6c5b-42a8-95e1-c8f2b1d8c5f6', 'Emergency Rental Assistance', 'Financial support for rent payments during emergencies', 'open', '2024-01-15', '2024-07-15 23:59:59', '2024-12-31', 'b2f4a96d-9618-4f5f-8687-0519b20fbb4c', '2024-01-10 09:00:00', '2024-01-10 09:00:00'),
+('e2b48c7a-5d4e-41b7-84e0-b7f1c9d0a5e4', 'Scholarship Program', 'Educational scholarships for low-income students', 'open', '2024-02-01', '2024-05-30 23:59:59', '2025-06-30', '5c17cb90-6c3f-47f3-9893-8d00c75a8bb4', '2024-01-11 10:00:00', '2024-01-11 10:00:00'),
+('d1a37b6d-4c3d-40a6-73d9-a6e0b8c9d4e3', 'Veteran Job Training', 'Employment training for veterans', 'open', '2024-03-01', '2024-08-31 23:59:59', '2024-12-15', '9f45b9c1-ae0a-4e5b-9b2d-cd6ba73e5c7d', '2024-01-12 11:00:00', '2024-01-12 11:00:00'),
+('c0926a5c-3b2a-39a5-62c8-95d0a7b8c3d2', 'Healthcare Subsidy', 'Subsidies for medical care for low-income individuals', 'open', '2024-01-20', '2024-12-31 23:59:59', '2025-12-31', '1d893f83-4e8c-4ecb-a3bd-1da5cb88057f', '2024-01-13 12:00:00', '2024-01-13 12:00:00'),
+('b9815a4b-2a19-28a4-51b7-84c9a6b7b2c1', 'Job Placement Assistance', 'Employment placement services', 'close', '2023-07-01', '2023-12-31 23:59:59', '2024-01-31', 'b2f4a96d-9618-4f5f-8687-0519b20fbb4c', '2023-06-15 13:00:00', '2024-02-01 09:00:00');
 
 INSERT INTO qualifications (program_id, name, description, qualification_type, min_value, max_value, text_value, boolean_value) VALUES
 ('f3a47d9c-6c5b-42a8-95e1-c8f2b1d8c5f6', 'Income Limit', 'Maximum household income to qualify', 'income', 0, 50000, NULL, NULL),
@@ -267,7 +254,7 @@ INSERT INTO applications VALUES
 ('a8704a3a-1a08-17a3-40a6-73c8a5a6a1b0', '7e9df825-1e91-4ed0-86c9-8b1f786edcce', 'f3a47d9c-6c5b-42a8-95e1-c8f2b1d8c5f6', 'submitted', 'pending', '2024-01-20 14:30:00', NULL, NULL, '2024-01-20 14:30:00'),
 ('97693929-0997-0692-39a5-62b7a4a5a0a9', 'f78d3b42-3965-40d6-98e0-f02c8ef76ba1', 'e2b48c7a-5d4e-41b7-84e0-b7f1c9d0a5e4', 'under_review', 'verified', '2024-02-05 10:15:00', NULL, NULL, '2024-02-07 13:20:00'),
 ('86582818-9886-9581-28a4-51a6a3a4a9a8', 'cd28292a-eadd-42ee-8cef-3397a8bb353a', 'd1a37b6d-4c3d-40a6-73d9-a6e0b8c9d4e3', 'approved', 'verified', '2024-03-10 09:45:00', '2024-03-15 11:30:00', 'Approved based on service record and qualifications', '2024-03-15 11:30:00'),
-('75471707-8775-8470-17a3-40a5a2a3a8a7', '7e9df825-1e91-4ed0-86c9-8b1f786edcce', 'c0926a5c-3b2a-39a5-62c8-95d0a7b8c3d2', 'rejected', 'rejected', '2024-02-12 15:20:00', '2024-02-18 10:00:00', 'Income exceeds program threshold', '2024-02-18 10:00:00'),
+('75471707-8775-7470-17a3-40a5a2a3a8a7', '7e9df825-1e91-4ed0-86c9-8b1f786edcce', 'c0926a5c-3b2a-39a5-62c8-95d0a7b8c3d2', 'rejected', 'rejected', '2024-02-12 15:20:00', '2024-02-18 10:00:00', 'Income exceeds program threshold', '2024-02-18 10:00:00'),
 ('64360696-7664-7369-0692-39a4a1a2a7a6', 'f78d3b42-3965-40d6-98e0-f02c8ef76ba1', 'b9815a4b-2a19-28a4-51b7-84c9a6b7b2c1', 'draft', 'pending', '2024-01-18 16:40:00', NULL, NULL, '2024-01-18 16:40:00');
 
 INSERT INTO point_of_contacts VALUES
@@ -309,10 +296,6 @@ INSERT INTO program_categories VALUES
 ('d1a37b6d-4c3d-40a6-73d9-a6e0b8c9d4e3', '91c3f74d-6b4a-48e7-b3d2-5fa740e9c9d7'),
 ('d1a37b6d-4c3d-40a6-73d9-a6e0b8c9d4e3', 'd7a9c5b2-8f6e-4d31-9b5e-942a3bfea897'),
 ('c0926a5c-3b2a-39a5-62c8-95d0a7b8c3d2', '4a1b45c9-7630-4e14-bdfa-d38d1301185b');
-
-INSERT INTO program_locations VALUES
-('f3a47d9c-6c5b-42a8-95e1-c8f2b1d8c5f6', '42148474-4442-4147-8470-17a2a9a0a5a4'),
-('e2b48c7a-5d4e-41b7-84e0-b7f1c9d0a5e4', '31037363-3331-3036-7369-06a1a8a9a4a3');
 
 INSERT INTO organization_locations VALUES
 ('b2f4a96d-9618-4f5f-8687-0519b20fbb4c', '64360696-6664-6369-0692-39a4a1a2a7a6'),

@@ -8,3 +8,4 @@ python-dotenv==1.0.1
 numpy==1.26.4
 marshmallow==3.19.0
 mysql-connector-python==8.2.0
+marshmallow-enum==1.5.1
