@@ -1,5 +1,5 @@
 from enum import Enum
-from marshmallow import Schema, fields, validates, ValidationError, validate
+from marshmallow import Schema, fields, validates, ValidationError, validate, validates_schema
 from marshmallow_enum import EnumField
 
 class ProgramStatus(str, Enum):
@@ -46,40 +46,40 @@ class QualificationSchema(Schema):
     boolean_value = fields.Bool(allow_none=True)
 
     @validates("min_value")
-    def validate_min_value(self, value, **kwargs):
+    def validate_min_value(self, value):
         if value is not None and value < 0:
             raise ValidationError("min_value cannot be negative")
 
     @validates("max_value")
-    def validate_max_value(self, value, **kwargs):
+    def validate_max_value(self, value):
         if value is not None and value < 0:
             raise ValidationError("max_value cannot be negative")
 
-    # @validates_schema
-    # def validate_qualification_values(self, data, **kwargs):
-    #     qual_type = data.get('qualification_type')
+    @validates_schema
+    def validate_qualification_values(self, data):
+        qual_type = data.get('qualification_type')
         
-    #     if qual_type == QualificationType.INCOME:
-    #         if data.get('min_value') is None and data.get('max_value') is None:
-    #             raise ValidationError("Income qualification requires at least min_value or max_value")
-    #     elif qual_type == QualificationType.AGE:
-    #         if data.get('min_value') is None and data.get('max_value') is None:
-    #             raise ValidationError("Age qualification requires at least min_value or max_value")
-    #     elif qual_type == QualificationType.FAMILY_SIZE:
-    #         if data.get('min_value') is None and data.get('max_value') is None:
-    #             raise ValidationError("Family size qualification requires at least min_value or max_value")
-    #     elif qual_type == QualificationType.LOCATION:
-    #         if data.get('text_value') is None:
-    #             raise ValidationError("Location qualification requires text_value")
-    #     elif qual_type == QualificationType.EDUCATION:
-    #         if data.get('text_value') is None and data.get('min_value') is None:
-    #             raise ValidationError("Education qualification requires text_value or min_value")
-    #     elif qual_type in [QualificationType.DISABILITY, QualificationType.VETERAN_STATUS]:
-    #         if data.get('boolean_value') is None:
-    #             raise ValidationError(f"{qual_type.value} qualification requires boolean_value")
-    #     elif qual_type == QualificationType.OTHER:
-    #         if data.get('text_value') is None and data.get('boolean_value') is None:
-    #             raise ValidationError("Other qualification requires text_value or boolean_value")
+        if qual_type == QualificationType.INCOME:
+            if data.get('min_value') is None and data.get('max_value') is None:
+                raise ValidationError("Income qualification requires at least min_value or max_value")
+        elif qual_type == QualificationType.AGE:
+            if data.get('min_value') is None and data.get('max_value') is None:
+                raise ValidationError("Age qualification requires at least min_value or max_value")
+        elif qual_type == QualificationType.FAMILY_SIZE:
+            if data.get('min_value') is None and data.get('max_value') is None:
+                raise ValidationError("Family size qualification requires at least min_value or max_value")
+        elif qual_type == QualificationType.LOCATION:
+            if data.get('text_value') is None:
+                raise ValidationError("Location qualification requires text_value")
+        elif qual_type == QualificationType.EDUCATION:
+            if data.get('text_value') is None and data.get('min_value') is None:
+                raise ValidationError("Education qualification requires text_value or min_value")
+        elif qual_type in [QualificationType.DISABILITY, QualificationType.VETERAN_STATUS]:
+            if data.get('boolean_value') is None:
+                raise ValidationError(f"{qual_type.value} qualification requires boolean_value")
+        elif qual_type == QualificationType.OTHER:
+            if data.get('text_value') is None and data.get('boolean_value') is None:
+                raise ValidationError("Other qualification requires text_value or boolean_value")
 
 class ProgramBaseSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
