@@ -4,47 +4,73 @@ from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
 
 def retrieve_program(program_id: str) -> Dict[str, Any]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
-        # get program details
         cursor.execute('''
-            SELECT p.*, o.name as organization_name
+            SELECT 
+                p.*,
+                o.name as organization_name,
+                GROUP_CONCAT(DISTINCT CONCAT(c.id, ':', c.name)) as categories,
+                GROUP_CONCAT(DISTINCT CONCAT(l.id, ':', l.location_type, ':', l.type, ':', l.address_line1, ':', l.address_line2, ':', l.city, ':', l.state, ':', l.zip_code, ':', l.country, ':', l.is_primary)) as locations,
+                GROUP_CONCAT(DISTINCT CONCAT(q.name, ':', q.description, ':', q.qualification_type, ':', q.min_value, ':', q.max_value, ':', q.text_value, ':', q.boolean_value)) as qualifications
             FROM programs p
             JOIN organizations o ON p.organization_id = o.id
+            LEFT JOIN program_categories pc ON p.id = pc.program_id
+            LEFT JOIN categories c ON pc.category_id = c.id
+            LEFT JOIN locations l ON p.id = l.entity_id AND l.location_type = 'program'
+            LEFT JOIN qualifications q ON p.id = q.program_id
             WHERE p.id = %s
+            GROUP BY p.id
         ''', (program_id,))
+        
         program = cursor.fetchone()
         
         if not program:
             raise NotFoundError(f"Program with id {program_id} not found")
 
-        # get categories
-        cursor.execute('''
-            SELECT c.id, c.name
-            FROM program_categories pc
-            JOIN categories c ON pc.category_id = c.id
-            WHERE pc.program_id = %s
-        ''', (program_id,))
-        categories = cursor.fetchall()
-        program['category_ids'] = [cat['id'] for cat in categories]
-        program['categories'] = categories
+        # Parse the concatenated strings into proper data structures
+        if program['categories']:
+            program['categories'] = [
+                {'id': cat.split(':')[0], 'name': cat.split(':')[1]}
+                for cat in program['categories'].split(',')
+            ]
+        else:
+            program['categories'] = []
 
-        # get locations
-        cursor.execute('''
-            SELECT l.*
-            FROM program_locations pl
-            JOIN locations l ON pl.location_id = l.id
-            WHERE pl.program_id = %s
-        ''', (program_id,))
-        program['locations'] = cursor.fetchall()
+        if program['locations']:
+            program['locations'] = [
+                {
+                    'id': loc.split(':')[0],
+                    'location_type': loc.split(':')[1],
+                    'type': loc.split(':')[2],
+                    'address_line1': loc.split(':')[3],
+                    'address_line2': loc.split(':')[4],
+                    'city': loc.split(':')[5],
+                    'state': loc.split(':')[6],
+                    'zip_code': loc.split(':')[7],
+                    'country': loc.split(':')[8],
+                    'is_primary': loc.split(':')[9] == '1'
+                }
+                for loc in program['locations'].split(',')
+            ]
+        else:
+            program['locations'] = []
 
-        # get qualifications
-        cursor.execute('''
-            SELECT *
-            FROM qualifications
-            WHERE program_id = %s
-        ''', (program_id,))
-        program['qualifications'] = cursor.fetchall()
+        if program['qualifications']:
+            program['qualifications'] = [
+                {
+                    'name': qual.split(':')[0],
+                    'description': qual.split(':')[1],
+                    'qualification_type': qual.split(':')[2],
+                    'min_value': qual.split(':')[3],
+                    'max_value': qual.split(':')[4],
+                    'text_value': qual.split(':')[5],
+                    'boolean_value': qual.split(':')[6] == '1'
+                }
+                for qual in program['qualifications'].split(',')
+            ]
+        else:
+            program['qualifications'] = []
 
         return program
 
@@ -53,12 +79,11 @@ def retrieve_program(program_id: str) -> Dict[str, Any]:
     finally:
         cursor.close()
 
-def update_program_info(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def update_program_info(program_id: str, data: Dict[str, Any]) -> None:
     cursor = db.get_db().cursor()
     try:
         cursor.execute("START TRANSACTION")
 
-        # update program details
         update_fields = []
         update_values = []
         
@@ -74,73 +99,8 @@ def update_program_info(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]
                 update_values
             )
 
-        # handle categories
-        if 'category_ids' in data:
-            # delete existing categories
-            cursor.execute('DELETE FROM program_categories WHERE program_id = %s', (program_id,))
-            
-            # insert new categories
-            if data['category_ids']:
-                category_values = [(program_id, category_id) for category_id in data['category_ids']]
-                cursor.executemany(
-                    'INSERT INTO program_categories (program_id, category_id) VALUES (%s, %s)',
-                    category_values
-                )
-
-        # handle locations
-        if 'locations' in data:
-            # get existing location IDs
-            cursor.execute('SELECT location_id FROM program_locations WHERE program_id = %s', (program_id,))
-            existing_location_ids = [row[0] for row in cursor.fetchall()]
-            
-            # delete existing locations and relationships
-            if existing_location_ids:
-                cursor.execute('DELETE FROM locations WHERE id IN (%s)' % ','.join(['%s'] * len(existing_location_ids)), existing_location_ids)
-                cursor.execute('DELETE FROM program_locations WHERE program_id = %s', (program_id,))
-            
-            # insert new locations and relationships
-            if data['locations']:
-                location_values = [
-                    ('program', program_id, loc['type'], loc.get('address_line1'), loc.get('address_line2'),
-                     loc['city'], loc['state'], loc['zip_code'], loc.get('country', 'United States'),
-                     loc.get('is_primary', True))
-                    for loc in data['locations']
-                ]
-                cursor.executemany(
-                    'INSERT INTO locations (location_type, entity_id, type, address_line1, address_line2, city, state, zip_code, country, is_primary) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                    location_values
-                )
-
-                cursor.execute('SELECT LAST_INSERT_ID()')
-                first_location_id = cursor.fetchone()[0]
-                location_ids = range(first_location_id, first_location_id + len(data['locations']))
-                
-                program_location_values = [(program_id, loc_id) for loc_id in location_ids]
-                cursor.executemany(
-                    'INSERT INTO program_locations (program_id, location_id) VALUES (%s, %s)',
-                    program_location_values
-                )
-
-        # handle qualifications
-        if 'qualifications' in data:
-            # delete existing qualifications
-            cursor.execute('DELETE FROM qualifications WHERE program_id = %s', (program_id,))
-            
-            # insert new qualifications
-            if data['qualifications']:
-                qualification_values = [
-                    (program_id, qual['name'], qual['description'], qual['qualification_type'],
-                     qual.get('min_value'), qual.get('max_value'), qual.get('text_value'),
-                     qual.get('boolean_value'))
-                    for qual in data['qualifications']
-                ]
-                cursor.executemany(
-                    'INSERT INTO qualifications (program_id, name, description, qualification_type, min_value, max_value, text_value, boolean_value) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
-                    qualification_values
-                )
-
         db.get_db().commit()
-        return retrieve_program(program_id)
+        return None
 
     except MySQLError as e:
         db.get_db().rollback()
@@ -148,6 +108,94 @@ def update_program_info(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]
     finally:
         cursor.close()
 
+def upsert_locations(program_id: str, data: Dict[str, Any]) -> None:
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        
+        cursor.execute('DELETE FROM locations WHERE entity_id = %s AND location_type = %s', (program_id, 'program'))
+        
+        if 'locations' in data and data['locations']:
+            location_values = [
+                (
+                    'program',
+                    program_id,
+                    location['type'],
+                    location.get('address_line1'),
+                    location.get('address_line2'),
+                    location['city'],
+                    location['state'],
+                    location['zip_code'],
+                    location.get('country', 'United States'),
+                    location.get('is_primary', True)
+                )
+                for location in data['locations']
+            ]
+            cursor.executemany('''
+                INSERT INTO locations 
+                (location_type, entity_id, type, address_line1, address_line2, city, state, zip_code, country, is_primary)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ''', location_values)
+        
+        db.get_db().commit()
+        return None
+    except MySQLError as e:
+        db.get_db().rollback()
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def upsert_qualifications(program_id: str, data: Dict[str, Any]) -> None:   
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute('DELETE FROM qualifications WHERE program_id = %s', (program_id,))
+        if 'qualifications' in data and data['qualifications']:
+            qualification_values = [
+                (
+                    program_id,
+                    qual['name'],
+                    qual['description'],
+                    qual['qualification_type'],
+                    qual.get('min_value'),
+                    qual.get('max_value'),
+                    qual.get('text_value'),
+                    qual.get('boolean_value')
+                )
+                for qual in data['qualifications']
+            ]
+            cursor.executemany('''
+                INSERT INTO qualifications 
+                (program_id, name, description, qualification_type, min_value, max_value, text_value, boolean_value)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''', qualification_values)
+        
+        db.get_db().commit()
+        return None
+    except MySQLError as e:
+        db.get_db().rollback()
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def upsert_categories(program_id: str, data: Dict[str, Any]) -> None:
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute('DELETE FROM program_categories WHERE program_id = %s', (program_id,))
+        if 'category_ids' in data and data['category_ids']:
+            category_values = [(program_id, category_id) for category_id in data['category_ids']]
+            cursor.executemany(
+                'INSERT INTO program_categories (program_id, category_id) VALUES (%s, %s)',
+                category_values
+            )
+        db.get_db().commit()
+        return None
+    except MySQLError as e:
+        db.get_db().rollback()
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
 
 def remove_program(program_id: str) -> None:
     cursor = db.get_db().cursor()
@@ -161,12 +209,12 @@ def remove_program(program_id: str) -> None:
         cursor.close()
 
 def get_program_feedback(program_id: str, page: int, limit: int) -> List[Dict[str, Any]]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         offset = (page - 1) * limit
         cursor.execute('''
             SELECT f.*
-            FROM feedbacks f
+            FROM feedback_forms f
             INNER JOIN programs p ON f.program_id = p.id
             WHERE p.id = %s
             ORDER BY f.created_at DESC
@@ -179,16 +227,15 @@ def get_program_feedback(program_id: str, page: int, limit: int) -> List[Dict[st
         cursor.close()
 
 def get_program_profiles(program_id: str, page: int, limit: int) -> List[Dict[str, Any]]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         offset = (page - 1) * limit
         cursor.execute('''
-            SELECT p.*
-            FROM profiles p
-            INNER JOIN applications a ON p.id = a.profile_id
+            SELECT u.*
+            FROM user_profiles u
+            INNER JOIN applications a ON u.user_id = a.user_id
             INNER JOIN programs pr ON a.program_id = pr.id
             WHERE pr.id = %s
-            ORDER BY a.created_at DESC
             LIMIT %s OFFSET %s
         ''', (program_id, limit, offset))
         return cursor.fetchall()
@@ -198,7 +245,7 @@ def get_program_profiles(program_id: str, page: int, limit: int) -> List[Dict[st
         cursor.close()
         
 def get_program_applications(program_id: str, page: int, limit: int) -> List[Dict[str, Any]]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         offset = (page - 1) * limit
         cursor.execute('''
@@ -206,7 +253,7 @@ def get_program_applications(program_id: str, page: int, limit: int) -> List[Dic
             FROM applications a
             INNER JOIN programs p ON a.program_id = p.id
             WHERE p.id = %s
-            ORDER BY a.created_at DESC
+            ORDER BY a.applied_at DESC
             LIMIT %s OFFSET %s
         ''', (program_id, limit, offset))
         return cursor.fetchall()
@@ -216,7 +263,7 @@ def get_program_applications(program_id: str, page: int, limit: int) -> List[Dic
         cursor.close()
 
 def get_program_stats(program_id: str) -> Dict[str, Any] | None:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         cursor.execute("""
             SELECT 
@@ -240,7 +287,7 @@ def get_program_stats(program_id: str) -> Dict[str, Any] | None:
         cursor.close()
         
 def get_program_trends(page: int, limit: int) -> List[Dict[str, Any]]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         offset = (page - 1) * limit
         cursor.execute('''
@@ -248,7 +295,7 @@ def get_program_trends(page: int, limit: int) -> List[Dict[str, Any]]:
                 p.id AS program_id, 
                 p.name AS program_name, 
                 c.name AS category_name, 
-                DATE_FORMAT(a.applied_at, '%Y-%m') AS application_month, 
+                DATE_FORMAT(a.applied_at, '%%Y-%%m') AS application_month, 
                 COUNT(a.id) AS application_count, 
                 SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) AS approved_count, 
                 SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) AS rejected_count 
@@ -257,7 +304,7 @@ def get_program_trends(page: int, limit: int) -> List[Dict[str, Any]]:
             INNER JOIN program_categories pc ON p.id = pc.program_id 
             INNER JOIN categories c ON pc.category_id = c.id 
             WHERE a.applied_at >= DATE_SUB(CURRENT_DATE(), INTERVAL 24 MONTH) 
-            GROUP BY p.id, p.name, c.name, DATE_FORMAT(a.applied_at, '%Y-%m') 
+            GROUP BY p.id, p.name, c.name, DATE_FORMAT(a.applied_at, '%%Y-%%m') 
             ORDER BY p.name, application_month
             LIMIT %s OFFSET %s
         ''', (limit, offset))
@@ -267,9 +314,8 @@ def get_program_trends(page: int, limit: int) -> List[Dict[str, Any]]:
     finally:
         cursor.close()
         
-    
 def get_program_retention(page: int, limit: int) -> List[Dict[str, Any]]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         offset = (page - 1) * limit
         cursor.execute('''
@@ -299,7 +345,7 @@ def get_program_retention(page: int, limit: int) -> List[Dict[str, Any]]:
         cursor.close()
 
 def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
-    cursor = db.get_db().cursor(dictionary=True)
+    cursor = db.get_db().cursor()
     try:
         query = """
             SELECT DISTINCT p.*, o.name as organization_name
@@ -307,25 +353,21 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
             JOIN organizations o ON p.organization_id = o.id
             LEFT JOIN program_categories pc ON p.id = pc.program_id
             LEFT JOIN categories c ON pc.category_id = c.id
-            LEFT JOIN program_locations pl ON p.id = pl.program_id
-            LEFT JOIN locations l ON pl.location_id = l.id
+            LEFT JOIN locations l ON p.id = l.entity_id AND l.location_type = 'program'
             LEFT JOIN qualifications q ON p.id = q.program_id
             WHERE 1=1
         """
         query_params = []
 
-        # Search text in name, description, or organization name
         if 'search_query' in params and params['search_query']:
             query += " AND (p.name LIKE %s OR p.description LIKE %s OR o.name LIKE %s)"
             search_term = f"%{params['search_query']}%"
             query_params.extend([search_term, search_term, search_term])
 
-        # Filter by category
         if 'category_ids' in params and params['category_ids']:
             query += " AND c.id IN (%s)" % ','.join(['%s'] * len(params['category_ids']))
             query_params.extend(params['category_ids'])
 
-        # Filter by date range
         if 'start_date' in params and params['start_date']:
             query += " AND p.start_date >= %s"
             query_params.append(params['start_date'])
@@ -333,7 +375,6 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
             query += " AND p.end_date <= %s"
             query_params.append(params['end_date'])
 
-        # Filter by location
         if 'city' in params and params['city']:
             query += " AND l.city = %s"
             query_params.append(params['city'])
@@ -344,13 +385,12 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
             query += " AND l.zip_code = %s"
             query_params.append(params['zip_code'])
 
-        # Apply qualification checks only if user_id is provided
         user_profile = params.get('user_profile', {})
         is_qualified = params.get('is_qualified', None)
 
-        if 'user_id' in params:  # only apply qualifications if user_id is present
+        if 'user_id' in params:
             if is_qualified is not None:
-                if is_qualified:  # true, the user must meet all qualifications
+                if is_qualified:
                     query += """
                         AND NOT EXISTS (
                             SELECT 1 FROM qualifications q
@@ -390,7 +430,15 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
         query_params.extend([limit, offset])
 
         cursor.execute(query, query_params)
-        return cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        results = []
+        
+        for row in cursor.fetchall():
+            result = dict(zip(columns, row))
+            results.append(result)
+            
+        return results
+
     except MySQLError as e:
         raise DatabaseError(str(e))
     finally:

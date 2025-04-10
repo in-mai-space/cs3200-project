@@ -1,8 +1,8 @@
-from backend.validators.programs import ProgramUpdateSchema
+from backend.validators.programs import ProgramCategorySchema, ProgramLocationSchema, ProgramQualificationSchema, ProgramUpdateSchema
 from backend.programs.transactions import get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info
 from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify, Response
-from backend.utilities.errors import ValidationError, handle_error
+from backend.utilities.errors import handle_error
 from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
 from backend.validators.search import validate_search_params
@@ -26,7 +26,7 @@ def get_program(program_id: str) -> tuple[Response, int]:
     
 #------------------------------------------------------------
 # Search for programs
-@programs.route('/search', methods=['GET'])
+@programs.route('', methods=['GET'], strict_slashes=False)
 def search() -> tuple[Response, int]:
     try:
         params = validate_search_params()
@@ -119,11 +119,50 @@ def update_program(program_id) -> tuple[Response, int]:
         validate_uuid(program_id)
         program_schema = ProgramUpdateSchema()
         data = program_schema.load(request.json)
-        updated_program = update_program_info(program_id, data)
-        if updated_program:
-            return jsonify(updated_program), HTTPStatus.OK  
-        else:
-            raise ValidationError(f"Program with id {program_id} does not exist")
+        update_program_info(program_id, data)
+        return jsonify({ "message": "Program updated successfully" }), HTTPStatus.OK  
+        
+    except Exception as e:
+        return handle_error(e)
+    
+#------------------------------------------------------------
+# Update the locations of a specific program
+@programs.route('/<string:program_id>/locations', methods=['PUT'])
+def update_program_locations(program_id: str) -> tuple[Response, int]:
+    try:
+        validate_uuid(program_id)
+        program_schema = ProgramLocationSchema()
+        data = program_schema.load(request.json)
+        upsert_locations(program_id, data)
+        return jsonify({ "message": "Program locations updated successfully" }), HTTPStatus.OK
+    
+    except Exception as e:
+        return handle_error(e) 
+    
+#------------------------------------------------------------
+# Update the qualifications of a specific program
+@programs.route('/<string:program_id>/qualifications', methods=['PUT'])
+def update_program_qualifications(program_id: str) -> tuple[Response, int]:
+    try:
+        validate_uuid(program_id)
+        program_schema = ProgramQualificationSchema()
+        data = program_schema.load(request.json)    
+        upsert_qualifications(program_id, data)
+        return jsonify({ "message": "Program qualifications updated successfully" }), HTTPStatus.OK
+    
+    except Exception as e:
+        return handle_error(e)
+
+#------------------------------------------------------------
+# Update the categories of a specific program
+@programs.route('/<string:program_id>/categories', methods=['PUT'])
+def update_program_categories(program_id: str) -> tuple[Response, int]:
+    try:
+        validate_uuid(program_id)
+        program_schema = ProgramCategorySchema()
+        data = program_schema.load(request.json)
+        upsert_categories(program_id, data)
+        return jsonify({ "message": "Program categories updated successfully" }), HTTPStatus.OK
     
     except Exception as e:
         return handle_error(e)

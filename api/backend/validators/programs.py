@@ -83,23 +83,20 @@ class QualificationSchema(Schema):
 
 class ProgramBaseSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=100))
-    description = fields.Str(required=True, validate=validate.Length(min=1))
+    description = fields.Str(required=True, validate=validate.Length(min=1, max=500))
     status = EnumField(ProgramStatus, missing=ProgramStatus.OPEN)
     start_date = fields.Date(required=True)
     deadline = fields.DateTime(required=True)
     end_date = fields.Date(allow_none=True)
-    category_ids = fields.List(fields.Str(validate=validate.Length(equal=36)), required=True, validate=validate.Length(min=1))
-    locations = fields.List(fields.Nested(LocationBaseSchema), required=True, validate=validate.Length(min=1))
-    qualifications = fields.List(fields.Nested(QualificationSchema), allow_none=True)
 
     @validates("end_date")
-    def validate_end_date(self, value, **kwargs):
+    def validate_end_date(self, value):
         start_date = self.context.get("start_date")
         if value and start_date and value < start_date:
             raise ValidationError("end_date must be after start_date")
 
     @validates("deadline")
-    def validate_deadline(self, value, **kwargs):
+    def validate_deadline(self, value):
         start_date = self.context.get("start_date")
         if start_date and value.date() < start_date:
             raise ValidationError("deadline must be after start_date")
@@ -114,18 +111,24 @@ class ProgramUpdateSchema(Schema):
     start_date = fields.Date(allow_none=True)
     deadline = fields.DateTime(allow_none=True)
     end_date = fields.Date(allow_none=True)
-    category_ids = fields.List(fields.Str(validate=validate.Length(equal=36)), allow_none=True)
-    locations = fields.List(fields.Nested(LocationBaseSchema), allow_none=True)
-    qualifications = fields.List(fields.Nested(QualificationSchema), allow_none=True)
 
     @validates("end_date")
-    def validate_end_date(self, value, **kwargs):
+    def validate_end_date(self, value):
         start_date = self.context.get("start_date")
         if value and start_date and value < start_date:
             raise ValidationError("end_date must be after start_date")
 
     @validates("deadline")
-    def validate_deadline(self, value, **kwargs):
+    def validate_deadline(self, value):
         start_date = self.context.get("start_date")
         if start_date and value.date() < start_date:
             raise ValidationError("deadline must be after start_date")
+        
+class ProgramLocationSchema(Schema):
+    locations = fields.List(fields.Nested(LocationBaseSchema), required=True, validate=validate.Length(min=1))
+
+class ProgramQualificationSchema(Schema):
+    qualifications = fields.List(fields.Nested(QualificationSchema), required=True, validate=validate.Length(min=1))
+
+class ProgramCategorySchema(Schema):
+    category_ids = fields.List(fields.Str(validate=validate.Length(equal=36)), required=True, validate=validate.Length(min=1))
