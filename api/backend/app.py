@@ -8,6 +8,8 @@ from backend.programs.programs_routes import programs
 from backend.feedbacks.feedback_routes import feedbacks
 from backend.categories.controllers import categories
 from backend.applications.applications_routes import applications
+from backend.user_profiles.controllers import user_profiles
+
 
 def create_app():
     app = Flask(__name__)
@@ -33,6 +35,7 @@ def create_app():
     # Register routes under API v1
     app.logger.info('current_app(): registering blueprints with Flask app object.') 
     api_v1.register_blueprint(users, url_prefix='/users')
+    api_v1.register_blueprint(user_profiles, url_prefix='/user_profiles')
     api_v1.register_blueprint(organizations, url_prefix='/organizations')
     api_v1.register_blueprint(programs, url_prefix='/programs')
     api_v1.register_blueprint(applications, url_prefix='/applications')
