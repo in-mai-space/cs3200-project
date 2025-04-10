@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional, Tuple
 from flask import jsonify, Response
 from http import HTTPStatus
+from marshmallow.exceptions import ValidationError as MarshmallowValidationError
 
 class CustomAPIError(Exception):
     """Base class for custom API errors."""
@@ -51,6 +52,14 @@ def handle_error(error: Exception) -> Tuple[Response, int]:
     """Handle different types of errors and return appropriate responses."""
     if isinstance(error, CustomAPIError):
         return jsonify(error.to_dict()), error.status_code
+    
+    if isinstance(error, MarshmallowValidationError):
+        return jsonify({
+            "error": {
+                "message": error.messages,
+                "type": "ValidationError"
+            }
+        }), HTTPStatus.BAD_REQUEST
     
     # Handle unexpected errors
     return jsonify({

@@ -20,8 +20,8 @@ def create_program(id: str) -> tuple[Response, int]:
         program_schema = ProgramCreateSchema()
         data = program_schema.load(request.json)
 
-        result = insert_program(id, data)
-        return jsonify(result), HTTPStatus.CREATED
+        insert_program(id, data)
+        return jsonify({ "message": "Program created successfully" }), HTTPStatus.CREATED
     
     except Exception as e:
         return handle_error(e)
