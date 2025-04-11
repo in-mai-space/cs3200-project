@@ -1,6 +1,7 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from backend.database import db
 from backend.utilities.errors import DatabaseError
+import pymysql.cursors
 
 def insert_user_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -62,6 +63,34 @@ def insert_user_profile(data: Dict[str, Any]) -> Dict[str, Any]:
         ))
         db.get_db().commit()
         return {"message": "User profile created successfully"}
+    except Exception as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def get_user_profile_by_id(user_id: str) -> Optional[Dict[str, Any]]:
+    cursor = db.get_db().cursor(pymysql.cursors.DictCursor)
+    try:
+        query = """
+            SELECT 
+                user_id,
+                date_of_birth,
+                gender,
+                income,
+                education_level,
+                employment_status,
+                veteran_status,
+                disability_status,
+                ssn,
+                verification_status,
+                verification_date,
+                last_updated
+            FROM user_profiles
+            WHERE user_id = %s
+        """
+        cursor.execute(query, (user_id,))
+        profile = cursor.fetchone()
+        return profile
     except Exception as e:
         raise DatabaseError(str(e))
     finally:
