@@ -1,8 +1,9 @@
 from typing import Dict, Any, Tuple
 from flask import Blueprint, request, jsonify, Response
 from marshmallow import ValidationError
-from backend.user_profiles.transactions import get_user_profile_by_id, insert_user_profile
-from backend.user_profiles.validators import UserProfileSchema
+from backend.utilities.uuid import validate_uuid
+from backend.user_profiles.transactions import get_user_profile_by_id, insert_user_profile, update_user_profile
+from backend.user_profiles.validators import UserProfileSchema, UserProfileUpdateSchema
 from backend.utilities.errors import handle_error
 from http import HTTPStatus
 
@@ -30,6 +31,23 @@ def get_user_profile(user_id: str):
         if profile is None:
             return jsonify({'message': 'User profile not found'}), HTTPStatus.NOT_FOUND
         return jsonify(profile), HTTPStatus.OK
+
+    except Exception as e:
+        return handle_error(e)
+    
+@user_profiles.route('/<string:user_id>', methods=['PUT'], strict_slashes=False)
+def update_user_profile_route(user_id: str) -> Tuple[Response, int]:
+    try:
+        # Validate that the provided user_id is a valid UUID
+        validate_uuid(user_id)
+        
+        # Validate the request body using the new update schema
+        profile_schema = UserProfileUpdateSchema()
+        data = profile_schema.load(request.json)
+        
+        # Update the user profile using the helper function
+        result = update_user_profile(user_id, data)
+        return jsonify(result), HTTPStatus.OK
 
     except Exception as e:
         return handle_error(e)
