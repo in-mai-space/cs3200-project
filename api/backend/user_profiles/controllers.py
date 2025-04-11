@@ -2,7 +2,7 @@ from typing import Dict, Any, Tuple
 from flask import Blueprint, request, jsonify, Response
 from marshmallow import ValidationError
 from backend.utilities.uuid import validate_uuid
-from backend.user_profiles.transactions import get_user_profile_by_id, insert_user_profile, update_user_profile
+from backend.user_profiles.transactions import delete_user_profile, get_user_profile_by_id, insert_user_profile, update_user_profile
 from backend.user_profiles.validators import UserProfileSchema, UserProfileUpdateSchema
 from backend.utilities.errors import handle_error
 from http import HTTPStatus
@@ -48,6 +48,19 @@ def update_user_profile_route(user_id: str) -> Tuple[Response, int]:
         # Update the user profile using the helper function
         result = update_user_profile(user_id, data)
         return jsonify(result), HTTPStatus.OK
+
+    except Exception as e:
+        return handle_error(e)
+    
+@user_profiles.route('/<string:user_id>', methods=['DELETE'])
+def delete_profile_route(user_id: str) -> Tuple[Response, int]:
+    try:
+        # Validate that the provided user_id is a valid UUID.
+        validate_uuid(user_id)
+
+        # Delete the user profile using the helper function.
+        delete_user_profile(user_id)
+        return jsonify({"message": "User profile deleted successfully"}), HTTPStatus.OK
 
     except Exception as e:
         return handle_error(e)

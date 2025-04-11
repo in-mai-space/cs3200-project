@@ -156,3 +156,27 @@ def update_user_profile(user_id: str, update_data: Dict[str, Any]) -> Dict[str, 
         raise DatabaseError(str(e))
     finally:
         cursor.close()
+
+def delete_user_profile(user_id: str) -> Dict[str, Any]:
+    """
+    Delete a user's profile from the database.
+
+    Args:
+        user_id (str): The UUID of the user profile to delete.
+
+    Returns:
+        Dict[str, Any]: An empty dict or additional info if needed.
+
+    Raises:
+        DatabaseError: If there's an error deleting the user profile.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute('DELETE FROM user_profiles WHERE user_id = %s', (user_id,))
+        db.get_db().commit()
+        # Return an empty dict to be consistent with a structure that could return additional details.
+        return {}
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
