@@ -1,6 +1,8 @@
 from typing import Dict, Any, Optional
+
+from pymysql import MySQLError
 from backend.database import db
-from backend.utilities.errors import DatabaseError
+from backend.utilities.errors import DatabaseError, NotFoundError
 import pymysql.cursors
 
 def insert_user_profile(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -92,6 +94,65 @@ def get_user_profile_by_id(user_id: str) -> Optional[Dict[str, Any]]:
         profile = cursor.fetchone()
         return profile
     except Exception as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def update_user_profile(user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Update an existing user profile record in the database.
+
+    Args:
+        user_id (str): The UUID of the user profile to update.
+        update_data (Dict[str, Any]): Dictionary containing the fields to update.
+            Supported keys are:
+              - date_of_birth
+              - gender
+              - income
+              - education_level
+              - employment_status
+              - veteran_status
+              - disability_status
+              - ssn
+              - verification_status
+              - verification_date
+
+    Returns:
+        Dict[str, Any]: The updated user profile record.
+
+    Raises:
+        NotFoundError: If no user profile exists with the given user_id.
+        DatabaseError: If there's an error updating the user profile.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        update_fields = []
+        values = []
+        # Define the allowed fields for the update.
+        allowed_fields = [
+            'date_of_birth', 'gender', 'income', 'education_level',
+            'employment_status', 'veteran_status', 'disability_status',
+            'ssn', 'verification_status', 'verification_date'
+        ]
+        for field in allowed_fields:
+            if field in update_data:
+                update_fields.append(f"{field} = %s")
+                values.append(update_data[field])
+        if not update_fields:
+            raise DatabaseError("No valid fields to update")
+        # Append the user_id for the WHERE clause.
+        values.append(user_id)
+        query = f"UPDATE user_profiles SET {', '.join(update_fields)} WHERE user_id = %s"
+        cursor.execute(query, values)
+        db.get_db().commit()
+        
+        # Fetch the updated user profile record.
+        cursor.execute("SELECT * FROM user_profiles WHERE user_id = %s", (user_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise NotFoundError(f"User profile with id {user_id} does not exist")
+        return result
+    except MySQLError as e:
         raise DatabaseError(str(e))
     finally:
         cursor.close()

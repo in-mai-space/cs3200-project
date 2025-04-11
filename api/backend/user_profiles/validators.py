@@ -18,3 +18,18 @@ class UserProfileSchema(Schema):
         missing='unverified',
         validate=validate.OneOf(['unverified', 'pending', 'verified'])
     )
+
+class UserProfileUpdateSchema(Schema):
+    date_of_birth = fields.Date(required=False)
+    gender = fields.String(required=False, validate=validate.Length(max=20))
+    income = fields.Integer(required=False)  # Use Integer to match the INT column type
+    education_level = fields.String(required=False, validate=validate.Length(max=50))
+    employment_status = fields.String(required=False, validate=validate.Length(max=50))
+    veteran_status = fields.Boolean(required=False)
+    disability_status = fields.Boolean(required=False)
+    ssn = fields.String(required=False, validate=validate.Length(max=11))
+    verification_status = fields.String(
+        required=False,
+        validate=validate.OneOf(['unverified', 'pending', 'verified'])
+    )
+    verification_date = fields.DateTime(required=False)
