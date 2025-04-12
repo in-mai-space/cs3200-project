@@ -46,7 +46,25 @@ def get_user(user_id: str) -> Tuple[Any, int]:
         return handle_error(e)
     except Exception as e:
         return handle_error(e)
-    
+
+# New PUT endpoint for updating a user
+@users.route('/<string:user_id>', methods=['PUT'], strict_slashes=False)
+def update_user_route(user_id: str) -> Tuple[Response, int]:
+    try:
+        # Validate that the provided user_id is a valid UUID
+        validate_uuid(user_id)
+         
+        # Validate the request body using the update schema
+        user_schema = UserUpdateSchema()
+        data = user_schema.load(request.json)
+         
+        # Update the user using the helper function
+        result = update_user(user_id, data)
+        return jsonify(result), HTTPStatus.OK
+ 
+    except Exception as e:
+        return handle_error(e)
+
 @users.route('/<string:user_id>', methods=['DELETE'])
 def delete_user_route(user_id: str) -> Tuple[Response, int]:
     try:

@@ -61,3 +61,47 @@ def get_point_of_contact_by_id(contact_id: str) -> Dict[str, Any]:
         raise DatabaseError(f"Error fetching point of contact: {str(e)}")
     finally:
         cursor.close()
+
+def update_point_of_contact(contact_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Update an existing point of contact record in the database.
+
+    Args:
+        contact_id (str): The UUID of the point of contact to update.
+        update_data (Dict[str, Any]): Dictionary containing the fields to update.
+            Supported keys are 'contact_type', 'entity_id', 'description', 'email', and 'phone_number'.
+
+    Returns:
+        Dict[str, Any]: The updated point of contact record.
+
+    Raises:
+        NotFoundError: If no point of contact exists with the given ID.
+        DatabaseError: If there's an error updating the point of contact.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        update_fields = []
+        values = []
+        # Loop only over allowed keys according to the PointOfContactUpdateSchema
+        for key in ['contact_type', 'entity_id', 'description', 'email', 'phone_number']:
+            if key in update_data:
+                update_fields.append(f"{key} = %s")
+                values.append(update_data[key])
+        if not update_fields:
+            raise DatabaseError("No valid fields to update")
+        # Append the contact_id for the WHERE clause
+        values.append(contact_id)
+        query = f"UPDATE point_of_contacts SET {', '.join(update_fields)} WHERE id = %s"
+        cursor.execute(query, values)
+        db.get_db().commit()
+        
+        # Fetch the updated point of contact record
+        cursor.execute("SELECT * FROM point_of_contacts WHERE id = %s", (contact_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise NotFoundError(f"Point of contact with id {contact_id} does not exist")
+        return result
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
