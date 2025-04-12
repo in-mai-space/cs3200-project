@@ -20,5 +20,6 @@ if __name__ == '__main__':
 from backend.feedbacks import controllers as feedback_routes
 app.register_blueprint(feedback_routes.feedbacks)
 
-from backend.feedbacks import controllers as feedback_routes
-app.register_blueprint(feedback_routes.feedbacks)
+from backend.applications import controllers as application_routes
+app.register_blueprint(application_routes.applications)
+

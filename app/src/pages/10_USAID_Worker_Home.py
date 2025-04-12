@@ -33,3 +33,14 @@ if st.button("Submit Program Feedback",
              type='primary',
              use_container_width=True):
   st.switch_page('pages/14_Feedback_Submit.py')
+
+if st.button("Submit Application to Program",
+             type='primary',
+             use_container_width=True):
+    st.switch_page('pages/16_Application_Submit.py')
+
+if st.button("View / Edit Applications",
+             type='primary',
+             use_container_width=True):
+    st.switch_page('pages/17_Application_Viewer.py')
+

@@ -7,6 +7,8 @@ from backend.organizations.controllers import organizations
 from backend.programs.controllers import programs
 from backend.feedbacks.feedback_routes import feedbacks
 from backend.categories.controllers import categories
+from backend.applications import controllers as applications
+from backend.feedbacks import controllers as feedbacks
 from backend.applications.applications_routes import applications
 
 def create_app():
