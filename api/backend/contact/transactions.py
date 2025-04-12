@@ -6,25 +6,32 @@ from backend.database import db
 from backend.utilities.errors import DatabaseError, ConflictError, NotFoundError
 from mysql.connector import Error as MySQLError
 
-def insert_contact(data: Dict[str, str]) -> Dict[str, Any]:
+def insert_point_of_contact(data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Insert a new user record into the database.
+    Insert a new point of contact record into the database.
 
     Args:
-        data (Dict[str, str]): A dictionary containing the contact's data.
-            Must include 'first_name', 'last_name', and 'type'.
+        data (Dict[str, Any]): A dictionary containing the point of contact data.
+            Must include 'contact_type', 'entity_id', and 'email'.
+            Optionally include 'description' and 'phone_number'.
 
     Returns:
-        Dict[str, Any]: The newly created contact record.
+        Dict[str, Any]: A message confirming the successful creation of the point of contact.
 
     Raises:
-        DatabaseError: If an error occurs during contact creation.
+        DatabaseError: If an error occurs during the insertion.
     """
     cursor = db.get_db().cursor()
-    try: 
-        cursor.execute('INSERT INTO users (first_name, last_name, type) VALUES (%s, %s, %s)', (data['first_name'], data['last_name'], data['type']))
+    try:
+        # Retrieve optional fields or default to None
+        description = data.get('description')
+        phone_number = data.get('phone_number')
+        cursor.execute(
+            "INSERT INTO point_of_contacts (contact_type, entity_id, description, email, phone_number) VALUES (%s, %s, %s, %s, %s)",
+            (data['contact_type'], data['entity_id'], description, data['email'], phone_number)
+        )
         db.get_db().commit()
-        return {"message": "User created successfully"}
+        return {"message": "Point of contact created successfully"}
     except Exception as e:
         raise DatabaseError(str(e))
     finally:
