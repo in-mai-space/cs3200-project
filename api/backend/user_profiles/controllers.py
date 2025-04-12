@@ -1,6 +1,5 @@
-from typing import Dict, Any, Tuple
+from typing import Any, Tuple
 from flask import Blueprint, request, jsonify, Response
-from marshmallow import ValidationError
 from backend.utilities.uuid import validate_uuid
 from backend.user_profiles.transactions import delete_user_profile, get_user_profile_by_id, insert_user_profile, update_user_profile
 from backend.user_profiles.validators import UserProfileSchema, UserProfileUpdateSchema

@@ -7,7 +7,6 @@ from backend.users.transactions import (
     insert_user,
     update_user
 )
-from backend.database import db
 from backend.utilities.errors import NotFoundError, handle_error
 from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
