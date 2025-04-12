@@ -11,6 +11,7 @@ def HomeNav():
 
 #### ------------------------ User Role ------------------------
 def UserHomeNav():
+    st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
     st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
     st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
     st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
@@ -52,6 +53,7 @@ def SideBarLinks(show_home=False):
     # Show the other page navigators depending on the users' role.
     if st.session_state["authenticated"]:
         if st.session_state["role"] == "user":
+            st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
             st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
             st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
             st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
