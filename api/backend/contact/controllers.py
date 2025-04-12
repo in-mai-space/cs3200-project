@@ -1,7 +1,7 @@
 from typing import Dict, Any, Tuple
 from flask import Blueprint, request, jsonify, Response
 from marshmallow import ValidationError
-from backend.contact.transactions import get_point_of_contact_by_id, insert_point_of_contact, update_point_of_contact
+from backend.contact.transactions import delete_point_of_contact, get_point_of_contact_by_id, insert_point_of_contact, update_point_of_contact
 from backend.contact.validators import PointOfContactSchema, PointOfContactUpdateSchema
 from backend.users.validators import UserSchema, UserUpdateSchema
 from backend.database import db
@@ -49,5 +49,18 @@ def update_point_of_contact_route(contact_id: str) -> Tuple[Response, int]:
         # Update the point of contact using the helper function
         result = update_point_of_contact(contact_id, data)
         return jsonify(result), HTTPStatus.OK
+    except Exception as e:
+        return handle_error(e)
+    
+@contact.route('/<string:contact_id>', methods=['DELETE'])
+def delete_point_of_contact_route(contact_id: str) -> Tuple[Response, int]:
+    try:
+        # Validate that the provided contact_id is a valid UUID.
+        validate_uuid(contact_id)
+
+        # Delete the point of contact using the helper function.
+        delete_point_of_contact(contact_id)
+        return jsonify({"message": "Point of contact deleted successfully"}), HTTPStatus.OK
+
     except Exception as e:
         return handle_error(e)
