@@ -105,3 +105,26 @@ def update_point_of_contact(contact_id: str, update_data: Dict[str, Any]) -> Dic
         raise DatabaseError(str(e))
     finally:
         cursor.close()
+
+def delete_point_of_contact(contact_id: str) -> Dict[str, Any]:
+    """
+    Delete a point of contact from the database.
+
+    Args:
+        contact_id (str): The UUID of the point of contact to delete.
+
+    Returns:
+        Dict[str, Any]: An empty dictionary or additional info if needed.
+
+    Raises:
+        DatabaseError: If there's an error deleting the point of contact.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute('DELETE FROM point_of_contacts WHERE id = %s', (contact_id,))
+        db.get_db().commit()
+        return {}
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
