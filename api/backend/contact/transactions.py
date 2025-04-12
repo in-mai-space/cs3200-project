@@ -36,3 +36,28 @@ def insert_point_of_contact(data: Dict[str, Any]) -> Dict[str, Any]:
         raise DatabaseError(str(e))
     finally:
         cursor.close()
+
+def get_point_of_contact_by_id(contact_id: str) -> Dict[str, Any]:
+    """
+    Fetch the point of contact record from the database by its ID.
+
+    Args:
+        contact_id (str): The unique identifier of the point of contact.
+
+    Returns:
+        Dict[str, Any]: The point of contact record if found.
+
+    Raises:
+        DatabaseError: If there's an error fetching the point of contact.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("SELECT * FROM point_of_contacts WHERE id = %s", (contact_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise DatabaseError("Point of contact not found")
+        return result
+    except MySQLError as e:
+        raise DatabaseError(f"Error fetching point of contact: {str(e)}")
+    finally:
+        cursor.close()
