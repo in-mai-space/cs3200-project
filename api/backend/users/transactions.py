@@ -1,9 +1,8 @@
 from typing import Dict, List, Any
-from unittest import result
 
 from flask import jsonify
 from backend.database import db
-from backend.utilities.errors import DatabaseError, ConflictError, NotFoundError
+from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
 
 # Tony's code ========================================================

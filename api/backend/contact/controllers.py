@@ -1,11 +1,8 @@
-from typing import Dict, Any, Tuple
+from typing import Any, Tuple
 from flask import Blueprint, request, jsonify, Response
-from marshmallow import ValidationError
 from backend.contact.transactions import delete_point_of_contact, get_point_of_contact_by_id, insert_point_of_contact, update_point_of_contact
 from backend.contact.validators import PointOfContactSchema, PointOfContactUpdateSchema
-from backend.users.validators import UserSchema, UserUpdateSchema
-from backend.database import db
-from backend.utilities.errors import NotFoundError, handle_error
+from backend.utilities.errors import handle_error
 from backend.utilities.uuid import validate_uuid
 from http import HTTPStatus
 
