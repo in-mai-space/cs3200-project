@@ -5,7 +5,10 @@ from backend.organizations.transactions import (
     insert_program, 
     get_organization_by_id, 
     delete_organization_by_id, 
-    update_organization_by_id
+    update_organization_by_id,
+    upsert_org_contact,
+    get_organization_contact,
+    delete_organization_contact
 )
 from backend.utilities.errors import handle_error
 from backend.utilities.uuid import validate_uuid
@@ -87,7 +90,7 @@ def create_org_contacts(organization_id: str, contact_id: str) -> tuple[Response
         validate_uuid(contact_id)
         organizations_contact_schema = OrganizationContactSchema()
         data = organizations_contact_schema.load(request.json)
-        new_organization_contact = create_organization_contact(data)
+        new_organization_contact = upsert_org_contact(data)
         return jsonify(new_organization_contact), HTTPStatus.CREATED
 
     except Exception as e:

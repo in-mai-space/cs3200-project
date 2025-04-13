@@ -88,8 +88,6 @@ def update_organization_by_id(organization_id: str, update_data: Dict[str, Any])
         cursor.close()
         
 
-    
-        
 def delete_organization_by_id(organization_id: str):
     cursor = db.get_db().cursor()
     try:
@@ -99,3 +97,61 @@ def delete_organization_by_id(organization_id: str):
         raise DatabaseError(str(e))
     finally:
         cursor.close()
+
+def upsert_org_contact(organization_id: str, poc_id: str, data: Dict[str, Any]) -> None:   
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        cursor.execute('DELETE FROM point_of_contacts WHERE poc_id = %s', (poc_id,))
+        if 'point_of_contacts' in data and data['point_of_contacts']:
+            poc_values = [
+                (
+                    poc_id,
+                    'organization',
+                    organization_id,
+                    poc['description'],
+                    poc['email'],
+                    poc['phone_number'],
+                    poc['created_at'],
+                    'CURRENT_TIMESTAMP()'
+                )
+                for poc in data['point_of_contacts']
+            ]
+            cursor.executemany('''
+                INSERT INTO organizations 
+                (poc_id, entity_type, description, email, phone_number, max_value, text_value, boolean_value)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''', poc_values)
+        
+        db.get_db().commit()
+        return None
+    except MySQLError as e:
+        db.get_db().rollback()
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def get_organization_contact(org_contact_id: str):
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute('SELECT * FROM point_of_contacts WHERE id = %s', (org_contact_id,))
+        result = cursor.fetchone()
+        if not result:
+            raise NotFoundError(f"Organization contact with id {org_contact_id} does not exist")
+        return result
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def delete_organization_contact(org_contact_id: str):
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute('DELETE FROM point_of_contacts WHERE id = %s', (org_contact_id))
+        db.get_db().commit()
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+
