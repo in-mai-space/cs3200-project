@@ -3,42 +3,42 @@ tasks:
   all:build:
     desc: "Build all containers"
     cmds:
-      - docker compose -f docker-compose.yaml up -d --build api db
+      - docker compose -f docker-compose.yaml up -d --build api db app
   
   test:build:
     desc: "Build test containers"
     cmds:
-      - docker compose -f docker-compose-testing.yaml build api db
+      - docker compose -f docker-compose-testing.yaml build api db app
   
   all:up:
     desc: "Run all containers"
     cmds:
-      - docker compose up -d api db
+      - docker compose up -d
   
   test:up:
     desc: "Run test containers"
     cmds:
-      - docker compose -f docker-compose-testing.yaml up -d api db
+      - docker compose -f docker-compose-testing.yaml up -d
   
   all:down:
     desc: "Stop all containers"
     cmds:
-      - docker compose down api db
+      - docker compose down api db app
   
   test:down:
     desc: "Stop test containers"
     cmds:
-      - docker compose -f docker-compose-testing.yaml down api db
+      - docker compose -f docker-compose-testing.yaml down api db app
   
   all:stop:
     desc: "Stop all containers"
     cmds:
-      - docker compose stop api db
+      - docker compose stop api db app
   
   test:stop:
     desc: "Stop test containers"
     cmds:
-      - docker compose -f docker-compose-testing.yaml stop api db
+      - docker compose -f docker-compose-testing.yaml stop api db app
   
   all:db:
     desc: "Run db container"
