@@ -43,13 +43,13 @@ tasks = [
     },
     {
         "id": 2,
-        "description": "Update system security patch on all servers.",
-        "actions": ["Deploy", "Delay", "Cancel"]
+        "description": "User #1234 reports inappropriate post on post #1567",
+        "actions": ["Delete", "Flag"]
     },
     {
         "id": 3,
-        "description": "Monitor server performance and report anomalies.",
-        "actions": ["View Report", "Acknowledge"]
+        "description": "Organization ABC experiencing bugs and requests name of program #345 be changed to: XYZ program",
+        "actions": ["View Issue", "Edit"]
     }
 ]
 
