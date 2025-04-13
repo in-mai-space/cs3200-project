@@ -2,7 +2,7 @@ from typing import Dict, List, Any
 
 from flask import jsonify
 from backend.database import db
-from backend.utilities.errors import DatabaseError, ConflictError, NotFoundError
+from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
 
 # Tony's code ========================================================
@@ -94,6 +94,30 @@ def update_user(user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
         if not result:
             raise NotFoundError(f"User with id {user_id} does not exist")
         return result
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def delete_user(user_id: str) -> Dict[str, Any]:
+    """
+    Delete a user from the database.
+
+    Args:
+        user_id (str): The UUID of the user to delete.
+
+    Returns:
+        Dict[str, Any]: An empty dict or additional info if needed.
+
+    Raises:
+        DatabaseError: If there's an error deleting the user.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
+        db.get_db().commit()
+        # Return an empty dict to be consistent with a structure that could return additional details.
+        return {}
     except MySQLError as e:
         raise DatabaseError(str(e))
     finally:
