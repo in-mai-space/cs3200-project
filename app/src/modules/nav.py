@@ -9,96 +9,70 @@ import streamlit as st
 def HomeNav():
     st.sidebar.page_link("Home.py", label="Home", icon="🏠")
 
+#### ------------------------ User Role ------------------------
+def UserHomeNav():
+    st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
+    st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
+    st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
+    st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
 
-def AboutPageNav():
-    st.sidebar.page_link("pages/30_About.py", label="About", icon="🧠")
-
-
-#### ------------------------ Examples for Role of pol_strat_advisor ------------------------
-def PolStratAdvHomeNav():
-    st.sidebar.page_link(
-        "pages/00_Pol_Strat_Home.py", label="Political Strategist Home", icon="👤"
-    )
-
-
-def WorldBankVizNav():
-    st.sidebar.page_link(
-        "pages/01_World_Bank_Viz.py", label="World Bank Visualization", icon="🏦"
-    )
+#### ------------------------ Analyst Role ------------------------
+def AnalystHomeNav():
+    st.sidebar.page_link("pages/12_Analytics.py", label="Analytics Dashboard", icon="📈")
+    st.sidebar.page_link("pages/13_Reports.py", label="Reports", icon="📊")
+    st.sidebar.page_link("pages/14_Visualization.py", label="Visualization", icon="📊")
 
 
-def MapDemoNav():
-    st.sidebar.page_link("pages/02_Map_Demo.py", label="Map Demonstration", icon="🗺️")
+#### ------------------------ Admin Role ------------------------
+def AdminHomeNav():
+    st.sidebar.page_link("pages/21_User_Management.py", label="User Management", icon="👥")
+    st.sidebar.page_link("pages/22_Program_Management.py", label="Program Management", icon="⚙️")
+    st.sidebar.page_link("pages/23_Org_Management.py", label="Organization Management", icon="🏢")
 
 
-## ------------------------ Examples for Role of usaid_worker ------------------------
-def ApiTestNav():
-    st.sidebar.page_link("pages/12_API_Test.py", label="Test the API", icon="🛜")
-
-
-def PredictionNav():
-    st.sidebar.page_link(
-        "pages/11_Prediction.py", label="Regression Prediction", icon="📈"
-    )
-
-
-def ClassificationNav():
-    st.sidebar.page_link(
-        "pages/13_Classification.py", label="Classification Demo", icon="🌺"
-    )
-
-
-#### ------------------------ System Admin Role ------------------------
-def AdminPageNav():
-    st.sidebar.page_link("pages/20_Admin_Home.py", label="System Admin", icon="🖥️")
-    st.sidebar.page_link(
-        "pages/21_ML_Model_Mgmt.py", label="ML Model Management", icon="🏢"
-    )
+#### ------------------------ Organization Role ------------------------
+def OrganizationHomeNav():
+    st.sidebar.page_link("pages/31_Org_Programs.py", label="Manage Programs", icon="📋")
+    st.sidebar.page_link("pages/32_Org_Applications.py", label="View Applications", icon="📝")
+    st.sidebar.page_link("pages/33_Org_Settings.py", label="Organization Settings", icon="⚙️")
 
 
 # --------------------------------Links Function -----------------------------------------------
 def SideBarLinks(show_home=False):
     """
-    This function handles adding links to the sidebar of the app based upon the logged-in user's role, which was put in the streamlit session_state object when logging in.
+    This function handles adding links to the sidebar of the app based upon the logged-in user's role.
     """
-
-    # add a logo to the sidebar always
-    st.sidebar.image("assets/logo.png", width=150)
-
-    # If there is no logged in user, redirect to the Home (Landing) page
+    # If there is no logged in user, redirect to the Role Selection page
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
-        st.switch_page("Home.py")
+        st.switch_page("pages/00_Role_Selection.py")
 
     if show_home:
-        # Show the Home page link (the landing page)
-        HomeNav()
+        st.sidebar.page_link("pages/00_Role_Selection.py", label="Role Selection", icon="👥")
 
     # Show the other page navigators depending on the users' role.
     if st.session_state["authenticated"]:
-
-        # Show World Bank Link and Map Demo Link if the user is a political strategy advisor role.
-        if st.session_state["role"] == "pol_strat_advisor":
-            PolStratAdvHomeNav()
-            WorldBankVizNav()
-            MapDemoNav()
-
-        # If the user role is usaid worker, show the Api Testing page
-        if st.session_state["role"] == "usaid_worker":
-            PredictionNav()
-            ApiTestNav()
-            ClassificationNav()
-
-        # If the user is an administrator, give them access to the administrator pages
-        if st.session_state["role"] == "administrator":
-            AdminPageNav()
-
-    # Always show the About page at the bottom of the list of links
-    AboutPageNav()
+        if st.session_state["role"] == "user":
+            st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
+            st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
+            st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
+            st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
+        elif st.session_state["role"] == "analyst":
+            st.sidebar.page_link("pages/12_Analytics.py", label="Analytics Dashboard", icon="📈")
+            st.sidebar.page_link("pages/13_Reports.py", label="Reports", icon="📊")
+            st.sidebar.page_link("pages/14_Visualization.py", label="Visualization", icon="📊")
+        elif st.session_state["role"] == "administrator":
+            st.sidebar.page_link("pages/21_User_Management.py", label="User Management", icon="👥")
+            st.sidebar.page_link("pages/22_Program_Management.py", label="Program Management", icon="⚙️")
+            st.sidebar.page_link("pages/23_Org_Management.py", label="Organization Management", icon="🏢")
+        elif st.session_state["role"] == "organization":
+            st.sidebar.page_link("pages/31_Org_Programs.py", label="Manage Programs", icon="📋")
+            st.sidebar.page_link("pages/32_Org_Applications.py", label="View Applications", icon="📝")
+            st.sidebar.page_link("pages/33_Org_Settings.py", label="Organization Settings", icon="⚙️")
 
     if st.session_state["authenticated"]:
         # Always show a logout button if there is a logged in user
         if st.sidebar.button("Logout"):
             del st.session_state["role"]
             del st.session_state["authenticated"]
-            st.switch_page("Home.py")
+            st.switch_page("pages/00_Role_Selection.py")
