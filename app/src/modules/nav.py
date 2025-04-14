@@ -24,11 +24,18 @@ def AnalystHomeNav():
 
 
 #### ------------------------ Admin Role ------------------------
+# Pages:
+# User Management
+# Program Management (reused from organization persona possibly?)
+# Organization Management
+# Categories Management 
+# Application Management 
+# Feedback Management
 def AdminHomeNav():
     st.sidebar.page_link("pages/21_User_Management.py", label="User Management", icon="👥")
     st.sidebar.page_link("pages/22_Program_Management.py", label="Program Management", icon="⚙️")
     st.sidebar.page_link("pages/23_Org_Management.py", label="Organization Management", icon="🏢")
-
+    st.sidebar.page_link("pages/24_Category_Management.py", label="Category Management", icon="⚙️")
 
 #### ------------------------ Organization Role ------------------------
 def OrganizationHomeNav():
