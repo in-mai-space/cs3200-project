@@ -36,7 +36,7 @@ with col1:
         st.switch_page("pages/41_Add_User.py")
 with col2:
     if st.button("Edit User", type='primary', use_container_width=True):
-        st.switch_page("pages/22_Edit_User.py")
+        st.switch_page("pages/42_Edit_User.py")
 with col3:
     if st.button("Delete User", type='secondary', use_container_width=True):
         st.warning("Are you sure you want to delete this user?")
