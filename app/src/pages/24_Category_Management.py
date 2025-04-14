@@ -36,7 +36,7 @@ with col2:
         st.switch_page("pages/22_Edit_Organization.py")
 with col3:
     if st.button("Delete Category", type='secondary', use_container_width=True):
-        st.warning("Are you sure you want to delete this organization?")
+        st.warning("Are you sure you want to delete this category?")
 
 # User details
 with st.expander("Category Details"):
