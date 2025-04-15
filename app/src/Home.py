@@ -46,7 +46,7 @@ if st.session_state["authenticated"]:
     if st.session_state["role"] == "user":
         st.switch_page("pages/02_Programs.py")
     elif st.session_state["role"] == "analyst":
-        st.switch_page("pages/12_Analytics.py")
+        st.switch_page("pages/13_Program_Analytics.py")
     elif st.session_state["role"] == "administrator":
         st.switch_page("pages/21_User_Management.py")
     elif st.session_state["role"] == "organization":

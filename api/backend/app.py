@@ -12,8 +12,6 @@ from backend.feedbacks.controllers import feedbacks
 from backend.user_profiles.controllers import user_profiles
 from backend.contact.controllers import contact
 
-
-
 def create_app():
     app = Flask(__name__)
 

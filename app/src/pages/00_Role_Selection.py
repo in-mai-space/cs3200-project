@@ -35,7 +35,7 @@ with col1:
         st.session_state["role"] = "analyst"
         st.session_state["authenticated"] = True
         st.session_state["first_name"] = "Ernest"
-        st.switch_page("pages/12_Analytics.py")
+        st.switch_page("pages/13_Program_Analytics.py")
 
 with col2:
     # Admin Role
