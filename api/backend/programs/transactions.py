@@ -395,9 +395,20 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         # Handle search query if present
         if params.get('search_query'):
-            query += " AND (p.name LIKE %s OR p.description LIKE %s OR o.name LIKE %s)"
-            search_term = f"%{params['search_query']}%"
-            query_params.extend([search_term, search_term, search_term])
+            query += """
+                AND (
+                    CASE 
+                        WHEN p.name LIKE %s THEN 3  -- Exact match at start
+                        WHEN p.name LIKE %s THEN 2  -- Contains match
+                        WHEN p.description LIKE %s THEN 1  -- Description match
+                        WHEN o.name LIKE %s THEN 1  -- Organization match
+                        ELSE 0
+                    END > 0
+                )
+            """
+            exact_term = f"{params['search_query']}%"
+            contains_term = f"%{params['search_query']}%"
+            query_params.extend([exact_term, contains_term, contains_term, contains_term])
 
         # Handle categories if present and not empty
         categories = params.get('categories', [])
@@ -428,10 +439,26 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
                 # If no location conditions were added, we need to ensure we only get programs with locations
                 query += " AND l.id IS NOT NULL"
 
-        # Handle sorting
-        sort_field = params.get('sort_by', 'created_at')
-        sort_order = params.get('sort_order', 'DESC')
-        query += f" ORDER BY p.{sort_field} {sort_order}"
+        # Handle sorting and search relevance
+        if params.get('search_query'):
+            # Add search relevance ordering
+            query += """
+                ORDER BY 
+                    CASE 
+                        WHEN p.name LIKE %s THEN 3
+                        WHEN p.name LIKE %s THEN 2
+                        WHEN p.description LIKE %s THEN 1
+                        WHEN o.name LIKE %s THEN 1
+                        ELSE 0
+                    END DESC,
+                    p.name ASC
+            """
+            query_params.extend([exact_term, contains_term, contains_term, contains_term])
+        else:
+            # Default sorting if no search query
+            sort_field = params.get('sort_by', 'name')
+            sort_order = params.get('sort_order', 'ASC')
+            query += f" ORDER BY p.{sort_field} {sort_order}"
 
         # Handle pagination
         page = params.get('page', 1)
