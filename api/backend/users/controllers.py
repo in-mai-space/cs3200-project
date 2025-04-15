@@ -2,6 +2,7 @@ from typing import Any, Tuple
 from flask import Blueprint, request, jsonify, Response
 from backend.validators.users import UserSchema, UserUpdateSchema
 from backend.users.transactions import (
+    delete_user,
     get_user_by_id,
     insert_user,
     update_user
@@ -50,14 +51,27 @@ def update_user_route(user_id: str) -> Tuple[Response, int]:
     try:
         # Validate that the provided user_id is a valid UUID
         validate_uuid(user_id)
-        
+         
         # Validate the request body using the update schema
         user_schema = UserUpdateSchema()
         data = user_schema.load(request.json)
-        
+         
         # Update the user using the helper function
         result = update_user(user_id, data)
         return jsonify(result), HTTPStatus.OK
+ 
+    except Exception as e:
+        return handle_error(e)
+
+@users.route('/<string:user_id>', methods=['DELETE'])
+def delete_user_route(user_id: str) -> Tuple[Response, int]:
+    try:
+        # Validate that the provided user_id is a valid UUID.
+        validate_uuid(user_id)
+
+        # Delete user from the database using the helper function.
+        delete_user(user_id)
+        return jsonify({"message": "User deleted successfully"}), HTTPStatus.OK
 
     except Exception as e:
         return handle_error(e)
