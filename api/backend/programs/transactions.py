@@ -2,6 +2,7 @@ from typing import Dict, List, Any
 from backend.database import db
 from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
+import uuid
 
 def retrieve_program(program_id: str) -> Dict[str, Any]:
     cursor = db.get_db().cursor()
@@ -500,6 +501,41 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
         return parsed_results
 
     except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def create_program(data: Dict[str, Any]) -> Dict[str, Any]:
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        
+        # Generate a new UUID for the program
+        program_id = str(uuid.uuid4())
+        
+        # Insert the program
+        cursor.execute('''
+            INSERT INTO programs 
+            (id, name, description, status, start_date, deadline, end_date, organization_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (
+            program_id,
+            data['name'],
+            data['description'],
+            data.get('status', 'active'),
+            data['start_date'],
+            data['deadline'],
+            data.get('end_date'),
+            data['organization_id']
+        ))
+        
+        db.get_db().commit()
+        
+        # Return the created program
+        return retrieve_program(program_id)
+        
+    except MySQLError as e:
+        db.get_db().rollback()
         raise DatabaseError(str(e))
     finally:
         cursor.close()
