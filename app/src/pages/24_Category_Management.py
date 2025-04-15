@@ -30,10 +30,10 @@ st.markdown("### User Actions")
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Add New Category", type='primary', use_container_width=True):
-        st.switch_page("pages/22_Add_Organization.py")
+        st.switch_page("pages/45_Add_Category.py")
 with col2:
     if st.button("Edit Category", type='primary', use_container_width=True):
-        st.switch_page("pages/22_Edit_Organization.py")
+        st.switch_page("pages/46_Edit_Category.py")
 with col3:
     if st.button("Delete Category", type='secondary', use_container_width=True):
         st.warning("Are you sure you want to delete this category?")
