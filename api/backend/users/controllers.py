@@ -44,7 +44,7 @@ def get_user(user_id: str) -> Tuple[Any, int]:
         return handle_error(e)
     except Exception as e:
         return handle_error(e)
-
+    
 # New PUT endpoint for updating a user
 @users.route('/<string:user_id>', methods=['PUT'], strict_slashes=False)
 def update_user_route(user_id: str) -> Tuple[Response, int]:
