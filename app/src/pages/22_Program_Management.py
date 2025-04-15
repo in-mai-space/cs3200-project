@@ -32,7 +32,7 @@ st.markdown("### User Actions")
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Add New Program", type='primary', use_container_width=True):
-        st.switch_page("pages/22_Add_Program.py")
+        st.switch_page("pages/43_Add_Program.py")
 with col2:
     if st.button("Edit Program", type='primary', use_container_width=True):
         st.switch_page("pages/22_Edit_User.py")

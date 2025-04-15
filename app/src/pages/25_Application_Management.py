@@ -30,10 +30,10 @@ st.markdown("### User Actions")
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Add New Application", type='primary', use_container_width=True):
-        st.switch_page("pages/22_Add_Organization.py")
+        st.switch_page("pages/47_Add_Application.py")
 with col2:
     if st.button("Edit Application", type='primary', use_container_width=True):
-        st.switch_page("pages/22_Edit_Organization.py")
+        st.switch_page("pages/48_Edit_Application.py")
 with col3:
     if st.button("Delete Application", type='secondary', use_container_width=True):
         st.warning("Are you sure you want to delete this application?")
