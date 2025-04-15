@@ -7,11 +7,10 @@ from backend.organizations.controllers import organizations
 from backend.programs.controllers import programs
 from backend.feedbacks.feedback_routes import feedbacks
 from backend.categories.controllers import categories
-from backend.applications.applications_routes import applications
+from backend.applications.controllers import applications
+from backend.feedbacks.controllers import feedbacks
 from backend.user_profiles.controllers import user_profiles
 from backend.contact.controllers import contact
-
-
 
 def create_app():
     app = Flask(__name__)
