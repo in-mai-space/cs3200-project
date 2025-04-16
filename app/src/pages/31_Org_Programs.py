@@ -34,10 +34,10 @@ st.markdown("### Program Actions")
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Create New Program", type='primary', use_container_width=True):
-        st.switch_page("pages/32_Create_Program.py")
+        st.switch_page("36_Create_Program")
 with col2:
     if st.button("Edit Program", type='primary', use_container_width=True):
-        st.switch_page("pages/32_Edit_Program.py")
+        st.switch_page("35_Edit_Program")
 with col3:
     if st.button("Delete Program", type='secondary', use_container_width=True):
         st.warning("Are you sure you want to delete this program?")
