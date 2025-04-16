@@ -5,6 +5,15 @@ from backend.database import db
 from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
 
+
+def get_users(page: int, limit: int) -> List[Dict[str, Any]]:
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute('SELECT * FROM users LIMIT %s OFFSET %s', (limit, (page - 1) * limit))
+        return cursor.fetchall()
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+
 # Tony's code ========================================================
 def insert_user(data: Dict[str, str]) -> Dict[str, Any]:
     """
