@@ -2,6 +2,9 @@ import requests
 import streamlit as st
 from modules.nav import SideBarLinks
 
+if "delete_mode" not in st.session_state:
+    st.session_state.delete_mode = False
+
 st.set_page_config(
     page_title="Application Management",
     page_icon="👥",
@@ -13,18 +16,31 @@ SideBarLinks()
 
 st.title("🏢 Application Management")
 
-# Search and filter
-col1, col2 = st.columns(2)
-with col1:
-    search_query = st.text_input("Search applications")
-
-# Category list
-st.markdown("### Application List")
-st.dataframe({
-    "Application Name": ["Application 1", "Application 2", "Application 3", "Application 4"],
-    "Status": ["Active", "Active", "Active", "Inactive"],
-    "Last Login": ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04"]
-})
+st.markdown("### Find Application by ID")
+app_id = st.text_input("Application ID", placeholder="Enter the application’s UUID")
+if st.button("Search"):
+    if not app_id:
+        st.error("⚠️ Please enter an Application ID to search.")
+    else:
+        api_url = f"http://api:4000/api/v1/applications/{app_id}"
+        try:
+            resp = requests.get(api_url)
+            if resp.status_code == 200:
+                app = resp.json()
+                st.success("✅ Application found!")
+                # Display key fields:
+                st.write("**User ID:**", app.get("user_id"))
+                st.write("**Program ID:**", app.get("program_id"))
+                st.write("**Status:**", app.get("status"))
+                st.write("**Qualification Status:**", app.get("qualification_status"))
+                st.write("**Applied At:**", app.get("applied_at"))
+                st.write("**Decision Date:**", app.get("decision_date"))
+                st.write("**Decision Notes:**", app.get("decision_notes"))
+                st.write("**Last Updated:**", app.get("last_updated"))
+            else:
+                st.error(f"❌ Not found (status {resp.status_code}): {resp.text}")
+        except Exception as e:
+            st.error(f"Error fetching application: {e}")
 
 # User actions
 st.markdown("### User Actions")
