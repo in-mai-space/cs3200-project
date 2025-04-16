@@ -50,7 +50,7 @@ if st.session_state["authenticated"]:
     elif st.session_state["role"] == "administrator":
         st.switch_page("pages/21_User_Management.py")
     elif st.session_state["role"] == "organization":
-        st.switch_page("pages/31_Org_Programs.py")
+        st.switch_page("pages/33_Org_Profile.py")
 
 # Add footer
 st.markdown("""
