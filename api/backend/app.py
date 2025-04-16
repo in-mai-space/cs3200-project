@@ -5,7 +5,6 @@ from backend.config import load_config
 from backend.users.controllers import users
 from backend.organizations.controllers import organizations
 from backend.programs.controllers import programs
-from backend.feedbacks.feedback_routes import feedbacks
 from backend.categories.controllers import categories
 from backend.applications.controllers import applications
 from backend.feedbacks.controllers import feedbacks

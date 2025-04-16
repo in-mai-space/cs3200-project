@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
 from backend.feedbacks.transactions import (
-    create_feedback,
     get_feedback_by_id,
     delete_feedback
 )
