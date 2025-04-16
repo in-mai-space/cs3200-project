@@ -4,7 +4,7 @@ import requests
 from modules.nav import SideBarLinks
 
 st.set_page_config(
-    page_title="Create Program",
+    page_title="Edit Program",
     page_icon="⚙️",
     layout="wide"
 )
@@ -13,8 +13,8 @@ st.set_page_config(
 SideBarLinks()
 
 # Organization profile
-st.markdown("### Create Program")
-with st.form("create_program"):
+st.markdown("### Edit Program")
+with st.form("edit_program"):
     col1, col2 = st.columns(2)
     
     with col1:
@@ -29,7 +29,7 @@ with st.form("create_program"):
         deadline = st.date_input("Application Deadline")
                 
     
-    submitted = st.form_submit_button("Create Program")
+    submitted = st.form_submit_button("Save Changes")
 
     if submitted:
         payload = {
@@ -43,9 +43,9 @@ with st.form("create_program"):
 
         try:
             program_url = f"http://api:4000/api/v1/organizations/b2f4a96d-9618-4f5f-8687-0519b20fbb4c/programs/{program_id}"
-            response = requests.post(program_url, json=payload)
+            response = requests.put(program_url, json=payload)
             if response.status_code == 200 or response.status_code == 201:
-                st.success("Program successfully created!")
+                st.success("Successfully saved changes!")
             else:
                 st.error(f"Failed to create new program. (Status code: {response.status_code})\nResponse: {response.text}")
         except Exception as e:
