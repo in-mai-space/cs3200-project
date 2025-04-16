@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 
 # Set page configuration
 st.set_page_config(
@@ -54,8 +55,33 @@ with col2:
     st.markdown("### 🏢 Organization")
     st.markdown("**Bob**")
     st.markdown("Manage programs and applications")
-    if st.button("Act as Bob", key="org", use_container_width=True):
-        st.session_state["role"] = "organization"
-        st.session_state["authenticated"] = True
-        st.session_state["first_name"] = "Bob"
-        st.switch_page("pages/31_Org_Programs.py")
+    
+    # Load organizations if not already loaded
+    if 'organizations' not in st.session_state:
+        try:
+            response = requests.get("http://api:4000/api/v1/organizations")
+            if response.status_code == 200:
+                st.session_state.organizations = response.json()
+            else:
+                st.session_state.organizations = []
+        except Exception as e:
+            st.error(f"Error loading organizations: {str(e)}")
+            st.session_state.organizations = []
+    
+    # Organization selection
+    if st.session_state.organizations:
+        organization_options = {f"{org['name']}": org['id'] for org in st.session_state.organizations}
+        selected_org_name = st.selectbox(
+            "Select Organization",
+            options=list(organization_options.keys()),
+            index=0
+        )
+        
+        if st.button("Act as Bob", key="org", use_container_width=True):
+            st.session_state["role"] = "organization"
+            st.session_state["authenticated"] = True
+            st.session_state["first_name"] = "Bob"
+            st.session_state["selected_organization_id"] = organization_options[selected_org_name]
+            st.switch_page("pages/31_Org_Programs.py")
+    else:
+        st.error("No organizations available")
