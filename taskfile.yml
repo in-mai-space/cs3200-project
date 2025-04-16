@@ -14,6 +14,22 @@ tasks:
     desc: "Run all containers"
     cmds:
       - docker compose up -d
+
+  mock:
+    desc: "Set up environment and generate mock data"
+    cmds:
+      - |
+        if [ ! -d "venv" ]; then
+          python -m venv venv
+        fi
+      - source venv/bin/activate && pip install faker mysql-connector-python python-dotenv
+      - source venv/bin/activate && python database-files/generate_and_insert_mock_data.py
+  
+  db:
+    desc: "Execute MySQL query"
+    cmds:
+      - docker exec -it mysql_db mysql -u root -ppassword uplift -e "{{.CLI_ARGS}}"
+    silent: true
   
   test:up:
     desc: "Run test containers"
