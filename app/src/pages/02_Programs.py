@@ -100,8 +100,27 @@ if st.session_state.all_programs:
             with col1:
                 if program['status'].lower() == 'open':
                     if st.button("Apply Now", key=f"apply_{program['id']}"):
-                        st.session_state.selected_program_id = program['id']
-                        st.switch_page("pages/03_Applications.py")
+                        try:
+                            # Prepare application data
+                            application_data = {
+                                "user_id": st.session_state.user_id,
+                                "status": "submitted",
+                                "qualification_status": "pending"
+                            }
+                            
+                            # Submit application
+                            response = requests.post(
+                                f"http://api:4000/api/v1/programs/{program['id']}/applications",
+                                json=application_data
+                            )
+                            
+                            if response.status_code == 201:
+                                st.success("Application submitted successfully!")
+                                st.balloons()
+                            else:
+                                st.error(f"Failed to submit application: {response.text}")
+                        except Exception as e:
+                            st.error(f"Error submitting application: {str(e)}")
                 else:
                     st.button("Apply Now", key=f"apply_{program['id']}", disabled=True)
             with col2:

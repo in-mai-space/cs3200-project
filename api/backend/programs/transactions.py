@@ -2,41 +2,38 @@ from typing import Dict, List, Any
 from backend.database import db
 from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
-
-def create_application(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    cursor = db.get_db().cursor()
-    try:
-        query = '''
-            INSERT INTO applications (program_id, user_id, status, notes)
-            VALUES (%s, %s, %s, %s)
-        '''
-        values = (program_id, data['user_id'], data['status'], data['notes'])
-        cursor.execute(query, values)
-        db.get_db().commit()
-        application_id = cursor.lastrowid
-
-        cursor.execute('SELECT * FROM applications WHERE id = %s', (application_id,))
-        result = cursor.fetchone()
-        return result
-
-    except MySQLError as e:
-        raise DatabaseError(str(e))
-    finally:
-        cursor.close()
+import uuid
 
 def create_feedback(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     cursor = db.get_db().cursor()
     try:
         query = '''
-            INSERT INTO feedbacks (program_id, user_id, rating, comment)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO feedback_forms (
+                program_id, 
+                user_id, 
+                title, 
+                effectiveness, 
+                experience, 
+                simplicity, 
+                recommendation, 
+                improvement
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
-        values = (program_id, data['user_id'], data['rating'], data['comment'])
+        values = (
+            program_id, 
+            data['user_id'], 
+            data['title'],
+            data['effectiveness'],
+            data['experience'],
+            data['simplicity'],
+            data['recommendation'],
+            data['improvement']
+        )
         cursor.execute(query, values)
         db.get_db().commit()
         feedback_id = cursor.lastrowid
 
-        cursor.execute('SELECT * FROM feedbacks WHERE id = %s', (feedback_id,))
+        cursor.execute('SELECT * FROM feedback_forms WHERE id = %s', (feedback_id,))
         result = cursor.fetchone()
         return result
 
@@ -44,8 +41,40 @@ def create_feedback(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         raise DatabaseError(str(e))
     finally:
         cursor.close()
-
-    
+        
+def create_application(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Insert a new application into the database.
+    Automatically sets applied_at and last_updated via the table defaults.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        query = """
+        INSERT INTO applications (
+            user_id,
+            program_id,
+            status,
+            qualification_status,
+            decision_date,
+            decision_notes
+        ) VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (
+            data['user_id'],
+            program_id,
+            data.get('status'),
+            data.get('qualification_status'),
+            data.get('decision_date'),
+            data.get('decision_notes'),
+        ))
+        db.get_db().commit()
+        return {"message": "Application created successfully"}
+    except Exception as e:
+        # wrap any lower‑level error in your own DatabaseError
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+        
 def retrieve_program(program_id: str) -> Dict[str, Any]:
     cursor = db.get_db().cursor()
     try:
@@ -570,6 +599,41 @@ def search_program(params: Dict[str, Any]) -> List[Dict[str, Any]]:
         return parsed_results
 
     except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def create_program(data: Dict[str, Any]) -> Dict[str, Any]:
+    cursor = db.get_db().cursor()
+    try:
+        cursor.execute("START TRANSACTION")
+        
+        # Generate a new UUID for the program
+        program_id = str(uuid.uuid4())
+        
+        # Insert the program
+        cursor.execute('''
+            INSERT INTO programs 
+            (id, name, description, status, start_date, deadline, end_date, organization_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (
+            program_id,
+            data['name'],
+            data['description'],
+            data.get('status', 'active'),
+            data['start_date'],
+            data['deadline'],
+            data.get('end_date'),
+            data['organization_id']
+        ))
+        
+        db.get_db().commit()
+        
+        # Return the created program
+        return retrieve_program(program_id)
+        
+    except MySQLError as e:
+        db.get_db().rollback()
         raise DatabaseError(str(e))
     finally:
         cursor.close()

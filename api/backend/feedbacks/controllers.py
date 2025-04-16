@@ -9,7 +9,7 @@ from http import HTTPStatus
 
 feedbacks = Blueprint('feedbacks', __name__)
 
-@feedbacks.route('/feedbacks/<string:feedback_id>', methods=['GET'])
+@feedbacks.route('/<string:feedback_id>', methods=['GET'])
 def get_feedback_route(feedback_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(feedback_id)
@@ -18,7 +18,7 @@ def get_feedback_route(feedback_id: str) -> tuple[Response, int]:
     except Exception as e:
         return handle_error(e)
 
-@feedbacks.route('/feedbacks/<string:feedback_id>', methods=['DELETE'])
+@feedbacks.route('/<string:feedback_id>', methods=['DELETE'])
 def delete_feedback_route(feedback_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(feedback_id)

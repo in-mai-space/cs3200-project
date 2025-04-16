@@ -15,17 +15,21 @@ SideBarLinks()
 
 st.title("📊 Program Analytics")
 
-# Initialize session state for infinite scroll
+# Initialize session state for infinite scroll and program selection
 if 'all_programs' not in st.session_state:
     st.session_state.all_programs = []
 if 'page' not in st.session_state:
     st.session_state.page = 1
 if 'page_size' not in st.session_state:
-    st.session_state.page_size = 20  # Increased page size
+    st.session_state.page_size = 20
 if 'filters' not in st.session_state:
     st.session_state.filters = {}
 if 'has_more' not in st.session_state:
     st.session_state.has_more = True
+if 'view' not in st.session_state:
+    st.session_state.view = None
+if 'program_id' not in st.session_state:
+    st.session_state.program_id = None
 
 # Search and filters section
 st.markdown("### Search & Filters")
@@ -97,11 +101,13 @@ if st.session_state.all_programs:
             st.experimental_rerun()
     
     if selected_program:
-        program_id = st.session_state.all_programs[[f"{p['name']} - {p['organization_name']}" for p in st.session_state.all_programs].index(selected_program)]['id']
+        # Get the selected program's ID
+        selected_index = [f"{p['name']} - {p['organization_name']}" for p in st.session_state.all_programs].index(selected_program)
+        selected_program_id = st.session_state.all_programs[selected_index]['id']
         
         # Program details section
         st.markdown("### Program Details")
-        program = st.session_state.all_programs[[f"{p['name']} - {p['organization_name']}" for p in st.session_state.all_programs].index(selected_program)]
+        program = st.session_state.all_programs[selected_index]
         
         col1, col2 = st.columns(2)
         with col1:
@@ -132,24 +138,24 @@ if st.session_state.all_programs:
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             if st.button("View Applications"):
-                st.session_state['view'] = 'applications'
-                st.session_state['program_id'] = program_id
+                st.session_state.view = 'applications'
+                st.session_state.program_id = selected_program_id
         with col2:
             if st.button("View Profiles"):
-                st.session_state['view'] = 'profiles'
-                st.session_state['program_id'] = program_id
+                st.session_state.view = 'profiles'
+                st.session_state.program_id = selected_program_id
         with col3:
             if st.button("View Feedbacks"):
-                st.session_state['view'] = 'feedbacks'
-                st.session_state['program_id'] = program_id
+                st.session_state.view = 'feedbacks'
+                st.session_state.program_id = selected_program_id
         with col4:
             if st.button("View Feedback Stats"):
-                st.session_state['view'] = 'feedback_stats'
-                st.session_state['program_id'] = program_id
+                st.session_state.view = 'feedback_stats'
+                st.session_state.program_id = selected_program_id
         
         # Display selected view with infinite scroll
-        if 'view' in st.session_state and st.session_state['program_id'] == program_id:
-            if st.session_state['view'] == 'applications':
+        if st.session_state.view and st.session_state.program_id == selected_program_id:
+            if st.session_state.view == 'applications':
                 if 'all_applications' not in st.session_state:
                     st.session_state.all_applications = []
                 if 'app_page' not in st.session_state:
@@ -158,7 +164,7 @@ if st.session_state.all_programs:
                 def load_more_applications():
                     try:
                         response = requests.get(
-                            f"http://api:4000/api/v1/programs/{program_id}/applications",
+                            f"http://api:4000/api/v1/programs/{selected_program_id}/applications",
                             params={'page': st.session_state.app_page, 'limit': st.session_state.page_size}
                         )
                         if response.status_code == 200:
@@ -183,7 +189,7 @@ if st.session_state.all_programs:
                 else:
                     st.info("No applications found for this program")
             
-            elif st.session_state['view'] == 'profiles':
+            elif st.session_state.view == 'profiles':
                 if 'all_profiles' not in st.session_state:
                     st.session_state.all_profiles = []
                 if 'profiles_page' not in st.session_state:
@@ -194,7 +200,7 @@ if st.session_state.all_programs:
                 def load_more_profiles():
                     try:
                         response = requests.get(
-                            f"http://api:4000/api/v1/programs/{program_id}/profiles",
+                            f"http://api:4000/api/v1/programs/{selected_program_id}/profiles",
                             params={'page': st.session_state.profiles_page, 'limit': st.session_state.page_size}
                         )
                         if response.status_code == 200:
@@ -223,7 +229,7 @@ if st.session_state.all_programs:
                 else:
                     st.info("No profiles found for this program")
             
-            elif st.session_state['view'] == 'feedbacks':
+            elif st.session_state.view == 'feedbacks':
                 if 'all_feedbacks' not in st.session_state:
                     st.session_state.all_feedbacks = []
                 if 'feedbacks_page' not in st.session_state:
@@ -234,7 +240,7 @@ if st.session_state.all_programs:
                 def load_more_feedbacks():
                     try:
                         response = requests.get(
-                            f"http://api:4000/api/v1/programs/{program_id}/feedbacks",
+                            f"http://api:4000/api/v1/programs/{selected_program_id}/feedbacks",
                             params={'page': st.session_state.feedbacks_page, 'limit': st.session_state.page_size}
                         )
                         if response.status_code == 200:
@@ -263,9 +269,9 @@ if st.session_state.all_programs:
                 else:
                     st.info("No feedbacks found for this program")
             
-            elif st.session_state['view'] == 'feedback_stats':
+            elif st.session_state.view == 'feedback_stats':
                 try:
-                    response = requests.get(f"http://api:4000/api/v1/programs/{program_id}/feedbacks/stats")
+                    response = requests.get(f"http://api:4000/api/v1/programs/{selected_program_id}/feedbacks/stats")
                     if response.status_code == 200:
                         stats = response.json()
                         st.markdown("### Feedback Statistics")
@@ -285,4 +291,6 @@ if st.session_state.all_programs:
                     else:
                         st.error("Failed to fetch feedback statistics")
                 except Exception as e:
-                    st.error(f"Error: {str(e)}") 
+                    st.error(f"Error: {str(e)}")
+else:
+    st.info("No programs found") 

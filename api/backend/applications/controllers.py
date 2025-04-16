@@ -1,4 +1,7 @@
+from typing import Any, Dict, Tuple
 from flask import Blueprint, request, jsonify, Response
+from marshmallow import ValidationError
+from backend.validators.applications import ApplicationSchema
 from backend.applications.transactions import (
     get_application_by_id,
     update_application,
@@ -23,17 +26,28 @@ def get_application_route(application_id: str) -> tuple[Response, int]:
 def update_application_route(application_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(application_id)
-        data = request.get_json()
-        result = update_application(application_id, data)
+
+        schema = ApplicationSchema()
+        payload = schema.load(request.json)
+        result = update_application(application_id, payload)
+
         return jsonify(result), HTTPStatus.OK
+
+    except ValidationError as ve:
+        return handle_error(ve)
+
     except Exception as e:
         return handle_error(e)
 
 @applications.route('/<string:application_id>', methods=['DELETE'])
 def delete_application_route(application_id: str) -> tuple[Response, int]:
     try:
+        # Validate that the provided application_id is a valid UUID.
         validate_uuid(application_id)
+        
+        # Delete the application.
         delete_application(application_id)
         return jsonify({"message": "Application deleted successfully"}), HTTPStatus.OK
+
     except Exception as e:
         return handle_error(e)
