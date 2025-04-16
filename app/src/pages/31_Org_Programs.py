@@ -34,12 +34,15 @@ if 'selected_organization_id' not in st.session_state:
     st.error("No organization selected. Please select an organization from the role selection page.")
     st.stop()
 
-# Clear cached data if coming from edit page
-if 'from_edit_page' in st.session_state and st.session_state.from_edit_page:
+# Clear cached data if coming from edit or create page
+if ('from_edit_page' in st.session_state and st.session_state.from_edit_page) or \
+   ('from_create_page' in st.session_state and st.session_state.from_create_page):
     st.session_state.all_programs = []
     st.session_state.page = 1
     st.session_state.has_more = True
     st.session_state.from_edit_page = False
+    st.session_state.from_create_page = False
+    st.rerun()
 
 # Search and filter
 search_query = st.text_input("Search programs")
@@ -107,7 +110,7 @@ st.markdown("### Program Actions")
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("Add New Program", type='primary', use_container_width=True):
-        st.switch_page("pages/32_Create_Program.py")
+        st.switch_page("pages/36_Create_Program.py")
 with col2:
     if st.button("Edit Program", type='primary', use_container_width=True):
         if st.session_state.selected_program:
