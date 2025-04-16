@@ -3,6 +3,49 @@ from backend.database import db
 from backend.utilities.errors import DatabaseError, NotFoundError
 from mysql.connector import Error as MySQLError
 
+def create_application(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    cursor = db.get_db().cursor()
+    try:
+        query = '''
+            INSERT INTO applications (program_id, user_id, status, notes)
+            VALUES (%s, %s, %s, %s)
+        '''
+        values = (program_id, data['user_id'], data['status'], data['notes'])
+        cursor.execute(query, values)
+        db.get_db().commit()
+        application_id = cursor.lastrowid
+
+        cursor.execute('SELECT * FROM applications WHERE id = %s', (application_id,))
+        result = cursor.fetchone()
+        return result
+
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+def create_feedback(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    cursor = db.get_db().cursor()
+    try:
+        query = '''
+            INSERT INTO feedbacks (program_id, user_id, rating, comment)
+            VALUES (%s, %s, %s, %s)
+        '''
+        values = (program_id, data['user_id'], data['rating'], data['comment'])
+        cursor.execute(query, values)
+        db.get_db().commit()
+        feedback_id = cursor.lastrowid
+
+        cursor.execute('SELECT * FROM feedbacks WHERE id = %s', (feedback_id,))
+        result = cursor.fetchone()
+        return result
+
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+
+    
 def retrieve_program(program_id: str) -> Dict[str, Any]:
     cursor = db.get_db().cursor()
     try:

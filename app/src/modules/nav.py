@@ -13,8 +13,9 @@ def HomeNav():
 def UserHomeNav():
     st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
     st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
-    st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
-    st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
+    st.sidebar.page_link("pages/03_Applications.py", label="My Applications", icon="📝")
+    st.sidebar.page_link("pages/04_Feedback.py", label="My Feedback", icon="👤")
+    st.sidebar.page_link("pages/05_Profile.py", label="My Profile", icon="👤")
 
 #### ------------------------ Analyst Role ------------------------
 def AnalystHomeNav():
@@ -54,8 +55,7 @@ def SideBarLinks(show_home=False):
         if st.session_state["role"] == "user":
             st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
             st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
-            st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
-            st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
+            st.sidebar.page_link("pages/05_Profile.py", label="My Profile", icon="👤")
         elif st.session_state["role"] == "analyst":
             st.sidebar.page_link("pages/13_Program_Analytics.py", label="Program Analytics", icon="📈")
             st.sidebar.page_link("pages/14_Platform_Analytics.py", label="Platform Analytics", icon="⚙️")

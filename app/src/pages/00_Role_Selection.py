@@ -24,7 +24,7 @@ with col1:
         st.session_state["role"] = "user"
         st.session_state["authenticated"] = True
         st.session_state["first_name"] = "Cornelius the Fifth"
-        st.switch_page("pages/02_Programs.py")
+        st.switch_page("pages/01_Organizations.py")
 
     st.markdown("---")
 

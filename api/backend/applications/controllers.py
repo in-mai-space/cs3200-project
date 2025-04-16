@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
 from backend.applications.transactions import (
-    create_application,
     get_application_by_id,
     update_application,
     delete_application
@@ -11,16 +10,7 @@ from http import HTTPStatus
 
 applications = Blueprint('applications', __name__)
 
-@applications.route('/programs/<string:program_id>/applications', methods=['POST'])
-def create_application_route(program_id: str) -> tuple[Response, int]:
-    try:
-        data = request.get_json()
-        result = create_application(program_id, data)
-        return jsonify(result), HTTPStatus.CREATED
-    except Exception as e:
-        return handle_error(e)
-
-@applications.route('/applications/<string:application_id>', methods=['GET'])
+@applications.route('/<string:application_id>', methods=['GET'])
 def get_application_route(application_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(application_id)
@@ -29,7 +19,7 @@ def get_application_route(application_id: str) -> tuple[Response, int]:
     except Exception as e:
         return handle_error(e)
 
-@applications.route('/applications/<string:application_id>', methods=['PUT'])
+@applications.route('/<string:application_id>', methods=['PUT'])
 def update_application_route(application_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(application_id)
@@ -39,7 +29,7 @@ def update_application_route(application_id: str) -> tuple[Response, int]:
     except Exception as e:
         return handle_error(e)
 
-@applications.route('/applications/<string:application_id>', methods=['DELETE'])
+@applications.route('/<string:application_id>', methods=['DELETE'])
 def delete_application_route(application_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(application_id)
