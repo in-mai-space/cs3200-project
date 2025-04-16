@@ -1,11 +1,13 @@
 from typing import Any, Tuple
+from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify, Response
 from backend.validators.users import UserSchema, UserUpdateSchema
 from backend.users.transactions import (
     delete_user,
     get_user_by_id,
     insert_user,
-    update_user
+    update_user,
+    get_users
 )
 from backend.utilities.errors import NotFoundError, handle_error
 from backend.utilities.uuid import validate_uuid
@@ -45,6 +47,16 @@ def get_user(user_id: str) -> Tuple[Any, int]:
     except Exception as e:
         return handle_error(e)
     
+@users.route('', methods=['GET'], strict_slashes=False)
+def get_all_users() -> Tuple[Response, int]:
+    try:
+        # Validate the pagination parameters
+        page, limit = validate_pagination()
+        users = get_users(page, limit)
+        return jsonify(users), HTTPStatus.OK
+    except Exception as e:
+        return handle_error(e)
+
 # New PUT endpoint for updating a user
 @users.route('/<string:user_id>', methods=['PUT'], strict_slashes=False)
 def update_user_route(user_id: str) -> Tuple[Response, int]:

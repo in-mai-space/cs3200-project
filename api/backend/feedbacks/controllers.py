@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
 from backend.feedbacks.transactions import (
-    create_feedback,
     get_feedback_by_id,
     delete_feedback
 )
@@ -10,16 +9,7 @@ from http import HTTPStatus
 
 feedbacks = Blueprint('feedbacks', __name__)
 
-@feedbacks.route('/programs/<string:program_id>/feedbacks', methods=['POST'])
-def create_feedback_route(program_id: str) -> tuple[Response, int]:
-    try:
-        data = request.get_json()
-        result = create_feedback(program_id, data)
-        return jsonify(result), HTTPStatus.CREATED
-    except Exception as e:
-        return handle_error(e)
-
-@feedbacks.route('/feedbacks/<string:feedback_id>', methods=['GET'])
+@feedbacks.route('/<string:feedback_id>', methods=['GET'])
 def get_feedback_route(feedback_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(feedback_id)
@@ -28,7 +18,7 @@ def get_feedback_route(feedback_id: str) -> tuple[Response, int]:
     except Exception as e:
         return handle_error(e)
 
-@feedbacks.route('/feedbacks/<string:feedback_id>', methods=['DELETE'])
+@feedbacks.route('/<string:feedback_id>', methods=['DELETE'])
 def delete_feedback_route(feedback_id: str) -> tuple[Response, int]:
     try:
         validate_uuid(feedback_id)
