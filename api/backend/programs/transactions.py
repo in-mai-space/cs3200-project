@@ -8,15 +8,32 @@ def create_feedback(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     cursor = db.get_db().cursor()
     try:
         query = '''
-            INSERT INTO feedbacks (program_id, user_id, rating, comment)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO feedback_forms (
+                program_id, 
+                user_id, 
+                title, 
+                effectiveness, 
+                experience, 
+                simplicity, 
+                recommendation, 
+                improvement
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
-        values = (program_id, data['user_id'], data['rating'], data['comment'])
+        values = (
+            program_id, 
+            data['user_id'], 
+            data['title'],
+            data['effectiveness'],
+            data['experience'],
+            data['simplicity'],
+            data['recommendation'],
+            data['improvement']
+        )
         cursor.execute(query, values)
         db.get_db().commit()
         feedback_id = cursor.lastrowid
 
-        cursor.execute('SELECT * FROM feedbacks WHERE id = %s', (feedback_id,))
+        cursor.execute('SELECT * FROM feedback_forms WHERE id = %s', (feedback_id,))
         result = cursor.fetchone()
         return result
 

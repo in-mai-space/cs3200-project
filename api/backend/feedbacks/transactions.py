@@ -19,7 +19,7 @@ def get_feedback_by_id(feedback_id: str) -> Dict[str, Any]:
 def delete_feedback(feedback_id: str) -> None:
     cursor = db.get_db().cursor()
     try:
-        cursor.execute('DELETE FROM feedbacks WHERE id = %s', (feedback_id,))
+        cursor.execute('DELETE FROM feedback_forms WHERE id = %s', (feedback_id,))
         db.get_db().commit()
         if cursor.rowcount == 0:
             raise NotFoundError(f"No feedback with ID {feedback_id} to delete")
