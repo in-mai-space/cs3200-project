@@ -2,18 +2,15 @@ import streamlit as st
 import requests
 from datetime import datetime
 
-# 1. Page config
 st.set_page_config(
     page_title="Add New Application",
     page_icon="➕",
     layout="wide"
 )
 
-# 2. Header
 st.title("Add New Application")
 st.write("Fill out the form below to create a new application.")
 
-# 3. The form
 with st.form("add_application_form"):
     user_id = st.text_input(
         "User ID",
@@ -47,7 +44,6 @@ with st.form("add_application_form"):
     )
     submitted = st.form_submit_button("Create Application")
 
-# 4. When they hit “Create Application”
 if submitted:
     # build the payload
     payload = {
@@ -55,14 +51,13 @@ if submitted:
         "status": status,
         "qualification_status": qualification_status,
     }
-    # only include optional fields if the user provided them
+
     if decision_date:
-        # convert to ISO‐8601 so marshmallow DateTime will parse it
         payload["decision_date"] = datetime.combine(decision_date, datetime.min.time()).isoformat()
     if decision_notes:
         payload["decision_notes"] = decision_notes
 
-    # call your Flask API
+    # call Flask API
     api_url = f"http://api:4000/api/v1/applications/programs/{program_id}/applications"
     try:
         resp = requests.post(api_url, json=payload)
