@@ -18,12 +18,11 @@ st.markdown("### Organization Profile")
 with st.form("org_profile"):
     col1, col2 = st.columns(2)
 
-
-    org_url = f"http://api:4000/api/v1/organizations/b2f4a96d-9618-4f5f-8687-0519b20fbb4c"
+    org_url = f"http://api:4000/api/v1/organizations/{st.session_state.selected_organization_id}"
     org_response = requests.get(org_url)
     if org_response.status_code == 200 : org_data = org_response.json()
     
-    contact_response = requests.get("http://api:4000/api/v1/organizations/b2f4a96d-9618-4f5f-8687-0519b20fbb4c/53259585-6553-6258-9581-28a3a0a1a6a5")
+    contact_response = requests.get(f"http://api:4000/api/v1/organizations/{st.session_state.selected_organization_id}/53259585-6553-6258-9581-28a3a0a1a6a5")
     if contact_response.status_code == 200 : contact_data = contact_response.json() 
     
     with col1:
@@ -36,7 +35,11 @@ with st.form("org_profile"):
         phone = st.text_input("Phone Number", value=contact_data['phone_number'])
         address = st.text_area("Address", value="123 Organization Street")
     
-    submitted = st.form_submit_button("Update Profile")
+    # Add a centered submit button with proper styling
+    st.markdown("---")
+    submit_col1, submit_col2, submit_col3 = st.columns([1, 2, 1])
+    with submit_col2:
+        submitted = st.form_submit_button("Update Profile", type="primary", use_container_width=True)
 
     if submitted:
         payload = { "is_verified": org_data.get("is_verified", False) } 

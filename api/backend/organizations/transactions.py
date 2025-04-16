@@ -4,6 +4,29 @@ from backend.database import db
 from backend.utilities.errors import ConflictError, DatabaseError, NotFoundError, ValidationError
 from mysql.connector import Error as MySQLError
 
+def get_programs_by_organization_id(organization_id: str, page: int, limit: int, search_query: Optional[str] = None) -> List[Dict[str, Any]]:
+    cursor = db.get_db().cursor()
+    try:
+        # Base query
+        query = 'SELECT * FROM programs WHERE organization_id = %s'
+        params = [organization_id]
+        
+        # Add search query if provided
+        if search_query and search_query.strip():
+            query += ' AND (name LIKE %s OR description LIKE %s)'
+            search_pattern = f'%{search_query.strip()}%'
+            params.extend([search_pattern, search_pattern])
+        
+        # Add pagination
+        query += ' ORDER BY name ASC LIMIT %s OFFSET %s'
+        offset = (page - 1) * limit
+        params.extend([limit, offset])
+        
+        cursor.execute(query, params)
+        return cursor.fetchall()
+    except MySQLError as e:
+        raise DatabaseError(str(e))
+
 def insert_program(organization_id: str, data: Dict[str, Any]) -> None:
     cursor = db.get_db().cursor()
     try:
@@ -231,7 +254,6 @@ def search_org(params: Dict[str, Any]) -> List[Dict[str, Any]]:
         raise DatabaseError(str(e))
     finally:
         cursor.close()
-
 
 
 

@@ -13,8 +13,9 @@ def HomeNav():
 def UserHomeNav():
     st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
     st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
-    st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
-    st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
+    st.sidebar.page_link("pages/03_Applications.py", label="My Applications", icon="📝")
+    st.sidebar.page_link("pages/04_Feedback.py", label="My Feedback", icon="👤")
+    st.sidebar.page_link("pages/05_Profile.py", label="My Profile", icon="👤")
 
 #### ------------------------ Analyst Role ------------------------
 def AnalystHomeNav():
@@ -43,12 +44,10 @@ def AdminHomeNav():
 #### ------------------------ Organization Role ------------------------
 def OrganizationHomeNav():
     st.sidebar.page_link("pages/31_Org_Programs.py", label="Manage Programs", icon="📋")
-    st.sidebar.page_link("pages/32_Org_Applications.py", label="View Applications", icon="📝")
     st.sidebar.page_link("pages/33_Org_Profile.py", label="Organization Profile", icon="⚙️")
-    st.sidebar.page_link("pages/34_Org_Settings.py", label="Organization Settings", icon="⚙️")
-    st.sidebar.page_link("pages/36_Create_Program.py", label="Create Program", icon="📝")
-
-
+    st.sidebar.page_link("pages/36_Create_Program.py", label="Create Program", icon="📋")
+    st.sidebar.page_link("pages/35_Org_Edit_Program.py", label="Edit Program", icon="📝")
+    
 # --------------------------------Links Function -----------------------------------------------
 def SideBarLinks(show_home=False):
     """
@@ -67,8 +66,7 @@ def SideBarLinks(show_home=False):
         if st.session_state["role"] == "user":
             st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
             st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
-            st.sidebar.page_link("pages/03_User_Applications.py", label="My Applications", icon="📝")
-            st.sidebar.page_link("pages/04_Profile.py", label="My Profile", icon="👤")
+            st.sidebar.page_link("pages/05_Profile.py", label="My Profile", icon="👤")
         elif st.session_state["role"] == "analyst":
             st.sidebar.page_link("pages/13_Program_Analytics.py", label="Program Analytics", icon="📈")
             st.sidebar.page_link("pages/14_Platform_Analytics.py", label="Platform Analytics", icon="⚙️")
@@ -81,10 +79,7 @@ def SideBarLinks(show_home=False):
             st.sidebar.page_link("pages/26_Feedback_Management.py", label="Feedback Management", icon="⚙️")
         elif st.session_state["role"] == "organization":
             st.sidebar.page_link("pages/31_Org_Programs.py", label="Manage Programs", icon="📋")
-            st.sidebar.page_link("pages/32_Org_Applications.py", label="View Applications", icon="📝")
             st.sidebar.page_link("pages/33_Org_Profile.py", label="Organization Profile", icon="⚙️")
-            st.sidebar.page_link("pages/34_Org_Settings.py", label="Organization Settings", icon="⚙️")
-            st.sidebar.page_link("pages/36_Create_Program.py", label="Create Program", icon="📝")
 
     if st.session_state["authenticated"]:
         # Always show a logout button if there is a logged in user

@@ -1,5 +1,5 @@
 from backend.validators.programs import ProgramCategorySchema, ProgramLocationSchema, ProgramQualificationSchema, ProgramUpdateSchema, ProgramCreateSchema
-from backend.programs.transactions import create_feedback, get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info, upsert_categories, upsert_locations, upsert_qualifications, create_program
+from backend.programs.transactions import create_application, create_feedback, get_program_applications, get_program_feedback, get_program_profiles, get_program_retention, get_program_stats, get_program_trends, remove_program, retrieve_program, search_program, update_program_info, upsert_categories, upsert_locations, upsert_qualifications, create_program
 from backend.utilities.pagination import validate_pagination
 from flask import Blueprint, request, jsonify, Response
 from backend.utilities.errors import handle_error
@@ -18,8 +18,6 @@ def create_feedback_route(program_id: str) -> tuple[Response, int]:
     except Exception as e:
         return handle_error(e)
     
-#------------------------------------------------------------
-# Get a specific program
 @programs.route('/<string:program_id>', methods=['GET'])
 def get_program(program_id: str) -> tuple[Response, int]:
     try:
@@ -27,6 +25,15 @@ def get_program(program_id: str) -> tuple[Response, int]:
         program = retrieve_program(program_id)
         return jsonify(program), HTTPStatus.OK
     
+    except Exception as e:
+        return handle_error(e)
+    
+@programs.route('/<string:program_id>/applications', methods=['POST'])
+def create_application_route(program_id: str) -> tuple[Response, int]:
+    try:
+        data = request.get_json()
+        result = create_application(program_id, data)
+        return jsonify(result), HTTPStatus.CREATED
     except Exception as e:
         return handle_error(e)
     

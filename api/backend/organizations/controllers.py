@@ -1,8 +1,10 @@
 from http import HTTPStatus
+from backend.utilities.pagination import validate_pagination
 from backend.validators.organizations import OrganizationSchema, OrganizationContactSchema
 from backend.validators.search import validate_search_params
 from backend.organizations.transactions import (
-    create_organization, 
+    create_organization,
+    get_programs_by_organization_id, 
     insert_program, 
     get_organization_by_id, 
     delete_organization_by_id, 
@@ -35,6 +37,20 @@ def create_program(id: str) -> tuple[Response, int]:
     except Exception as e:
         return handle_error(e)
     
+#------------------------------------------------------------
+# Get all programs for an organization
+@organizations.route('/<string:id>/programs', methods=['GET'])
+def get_programs(id: str) -> tuple[Response, int]:
+    try:
+        validate_uuid(id)
+        page, limit = validate_pagination()
+        search_query = request.args.get('search_query')
+        programs = get_programs_by_organization_id(id, page, limit, search_query)
+        return jsonify(programs), HTTPStatus.OK
+
+    except Exception as e:
+        return handle_error(e)
+
 #------------------------------------------------------------
 # Create an organization
 @organizations.route('', methods=['POST'])

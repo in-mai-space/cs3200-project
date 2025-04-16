@@ -42,6 +42,39 @@ def create_feedback(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     finally:
         cursor.close()
         
+def create_application(program_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Insert a new application into the database.
+    Automatically sets applied_at and last_updated via the table defaults.
+    """
+    cursor = db.get_db().cursor()
+    try:
+        query = """
+        INSERT INTO applications (
+            user_id,
+            program_id,
+            status,
+            qualification_status,
+            decision_date,
+            decision_notes
+        ) VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (
+            data['user_id'],
+            program_id,
+            data.get('status'),
+            data.get('qualification_status'),
+            data.get('decision_date'),
+            data.get('decision_notes'),
+        ))
+        db.get_db().commit()
+        return {"message": "Application created successfully"}
+    except Exception as e:
+        # wrap any lower‑level error in your own DatabaseError
+        raise DatabaseError(str(e))
+    finally:
+        cursor.close()
+        
 def retrieve_program(program_id: str) -> Dict[str, Any]:
     cursor = db.get_db().cursor()
     try:
