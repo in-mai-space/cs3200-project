@@ -1,6 +1,8 @@
 # Uplift
 
 **Uplift** is a platform designed to centralize all free community resources and connect low-income users with services they might not be aware of—not limited to federal benefits.
+Below is the link to our presentation video:
+https://drive.google.com/file/d/1ttBm68ZIKmRa3vTJZMaqT_w9YmcxwzXL/view?usp=sharing
 
 ---
 
