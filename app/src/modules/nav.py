@@ -67,17 +67,17 @@ def SideBarLinks(show_home=False):
             st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
             st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
             st.sidebar.page_link("pages/05_Profile.py", label="My Profile", icon="👤")
-        elif st.session_state["role"] == "analyst":
+        elif st.session_state["role"] == "data_analyst":
             st.sidebar.page_link("pages/13_Program_Analytics.py", label="Program Analytics", icon="📈")
             st.sidebar.page_link("pages/14_Platform_Analytics.py", label="Platform Analytics", icon="⚙️")
-        elif st.session_state["role"] == "administrator":
+        elif st.session_state["role"] == "admin":
             st.sidebar.page_link("pages/21_User_Management.py", label="User Management", icon="👥")
             st.sidebar.page_link("pages/22_Program_Management.py", label="Program Management", icon="⚙️")
             st.sidebar.page_link("pages/23_Org_Management.py", label="Organization Management", icon="🏢")
             st.sidebar.page_link("pages/24_Category_Management.py", label="Category Management", icon="⚙️")
             st.sidebar.page_link("pages/25_Application_Management.py", label="Application Management", icon="🏢")
             st.sidebar.page_link("pages/26_Feedback_Management.py", label="Feedback Management", icon="⚙️")
-        elif st.session_state["role"] == "organization":
+        elif st.session_state["role"] == "organization_admin":
             st.sidebar.page_link("pages/31_Org_Programs.py", label="Manage Programs", icon="📋")
             st.sidebar.page_link("pages/33_Org_Profile.py", label="Organization Profile", icon="⚙️")
 
