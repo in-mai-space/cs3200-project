@@ -50,6 +50,9 @@ The project consists of **three major components**, each running in its own Dock
 - Copy `.env.template` and rename it to `.env`.
 - Fill in all required values.
 
+### 2. Install Task
+- Follow the instruction here: [https://taskfile.dev/installation/](https://taskfile.dev/installation/)
+- If you don't want to install task, you can manually run the commands from `taskfile.yml`
 ---
 
 ## 🐳 Using Docker with Taskfile
@@ -77,6 +80,11 @@ task test:down  # Stops the test environment
 ```bash
 task all:db     # Starts only the main DB
 task test:db    # Starts only the test DB
+```
+
+### 📊 Generate and Insert Mock Data
+```bash
+task mock       # Generate and insert mock data
 ```
 
 ---
