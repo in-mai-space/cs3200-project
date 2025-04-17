@@ -21,7 +21,7 @@ if 'all_programs' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = 1
 if 'page_size' not in st.session_state:
-    st.session_state.page_size = 20
+    st.session_state.page_size = 200
 if 'filters' not in st.session_state:
     st.session_state.filters = {}
 if 'has_more' not in st.session_state:
