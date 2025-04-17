@@ -115,30 +115,30 @@ with col2:
     if st.button("Edit Program", type='primary', use_container_width=True):
         if st.session_state.selected_program:
             st.session_state.edit_program_id = st.session_state.selected_program['id']
-            st.switch_page("pages/35_Edit_Program.py")
+            st.switch_page("pages/35_Org_Edit_Program.py")
         else:
             st.warning("Please select a program to edit")
 with col3:
     if st.button("Delete Program", type='secondary', use_container_width=True):
         if st.session_state.selected_program:
-            if st.button("Confirm Delete", type='primary', key='confirm_delete'):
-                try:
-                    response = requests.delete(
-                        f"http://api:4000/api/v1/programs/{st.session_state.selected_program['id']}"
-                    )
-                    if response.status_code == 200:
-                        st.success("Program deleted successfully!")
-                        # Reset the program list
-                        st.session_state.all_programs = []
-                        st.session_state.page = 1
-                        st.session_state.has_more = True
-                        st.rerun()
-                    else:
-                        st.error(f"Failed to delete program. (Status code: {response.status_code})")
-                except Exception as e:
-                    st.error(f"Error deleting program: {str(e)}")
+            try:
+                response = requests.delete(
+                    f"http://api:4000/api/v1/programs/{st.session_state.selected_program['id']}"
+                )
+                if response.status_code == 200:
+                    st.success("Program deleted successfully!")
+                    st.session_state.all_programs = []
+                    st.session_state.page = 1
+                    st.session_state.has_more = True
+                    st.session_state.selected_program = None
+                    st.rerun()
+                else:
+                    st.error(f"Failed to delete program. (Status code: {response.status_code})")
+            except Exception as e:
+                st.error(f"Error deleting program: {str(e)}")
         else:
             st.warning("Please select a program to delete")
+
 
 # Program details and additional views
 if st.session_state.all_programs:
