@@ -79,10 +79,6 @@ with st.form("feedback_form"):
             
             if response.status_code == 201:
                 st.success("Feedback submitted successfully!")
-                st.balloons()
-                # Redirect to programs page after 2 seconds
-                st.markdown("Redirecting to programs page...")
-                st.markdown('<meta http-equiv="refresh" content="2;url=/02_Programs.py">', unsafe_allow_html=True)
             else:
                 st.error(f"Failed to submit feedback: {response.text}")
                 
