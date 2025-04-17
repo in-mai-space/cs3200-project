@@ -50,8 +50,14 @@ if search_query and search_query.strip():
     st.session_state.has_more = True
 if sort_by:
     st.session_state.filters['sort_by'] = sort_by
+    st.session_state.all_programs = []  # Reset programs when search changes
+    st.session_state.page = 1
+    st.session_state.has_more = True
 if sort_order:
     st.session_state.filters['sort_order'] = sort_order
+    st.session_state.all_programs = []  # Reset programs when search changes
+    st.session_state.page = 1
+    st.session_state.has_more = True
 
 # Function to load more programs
 def load_more_programs():
@@ -93,13 +99,7 @@ if st.session_state.all_programs:
         options=[f"{p['name']} - {p['organization_name']}" for p in st.session_state.all_programs],
         index=0
     )
-    
-    # Load more button
-    if st.session_state.has_more:
-        if st.button("Load More Programs"):
-            load_more_programs()
-            st.experimental_rerun()
-    
+
     if selected_program:
         # Get the selected program's ID
         selected_index = [f"{p['name']} - {p['organization_name']}" for p in st.session_state.all_programs].index(selected_program)
