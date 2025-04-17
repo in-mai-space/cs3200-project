@@ -13,7 +13,6 @@ def HomeNav():
 def UserHomeNav():
     st.sidebar.page_link("pages/01_Organizations.py", label="Browse Organizations", icon="📋")
     st.sidebar.page_link("pages/02_Programs.py", label="Browse Programs", icon="📋")
-    st.sidebar.page_link("pages/03_Applications.py", label="My Applications", icon="📝")
     st.sidebar.page_link("pages/04_Feedback.py", label="My Feedback", icon="👤")
     st.sidebar.page_link("pages/05_Profile.py", label="My Profile", icon="👤")
 
